@@ -1,0 +1,12 @@
+{
+  "total_dates": 79,
+  "total_skus": 890,
+  "total_order_lines": 123307,
+  "dataframes": {
+    "date_order_summary": 79,
+    "percentile_profile": 5,
+    "sku_order_summary": 890,
+    "sku_profile_abc_fms": 890,
+    "abc_fms_summary": 4
+  }
+}
