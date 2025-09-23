@@ -1,0 +1,47 @@
+[global]
+# Development mode - set to false for production
+developmentMode = false
+
+# Data directory for file uploads
+dataFrameSerialization = "legacy"
+
+[server]
+# Server configuration for Streamlit Cloud
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 100
+maxMessageSize = 100
+
+# Enable file watcher for development
+fileWatcherType = "auto"
+
+[browser]
+# Automatically open browser on start (disabled for cloud deployment)
+gatherUsageStats = false
+
+[theme]
+# App theme configuration
+primaryColor = "#1976d2"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
+
+[logger]
+# Logging configuration
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
+
+[client]
+# Client configuration for better performance
+caching = true
+displayEnabled = true
+
+[runner]
+# Runner configuration for better memory management
+magicEnabled = true
+installTracer = false
+fixMatplotlib = true
+postScriptGC = true
+fastReruns = true
+enforceSerializableSessionState = false

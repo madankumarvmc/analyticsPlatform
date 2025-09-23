@@ -1134,3 +1134,81 @@
 2025-09-23 12:35:47,715 - HTMLReportGenerator - INFO - Preparing HTML tables
 2025-09-23 12:35:47,733 - HTMLReportGenerator - INFO - Prepared 5 HTML tables
 2025-09-23 12:35:47,741 - HTMLReportGenerator - INFO - HTML report generated successfully: report/Order_Profiles_Analysis.html
+2025-09-23 12:57:37,655 - data_loader - INFO - Loading order data from /Users/MKSBX/Documents/Analytics Tool/TestData.xlsx, sheet: OrderData
+2025-09-23 12:57:40,607 - data_loader - INFO - Successfully loaded 123307 order records
+2025-09-23 12:57:40,607 - data_loader - INFO - Loading SKU master from /Users/MKSBX/Documents/Analytics Tool/TestData.xlsx, sheet: SkuMaster
+2025-09-23 12:57:40,958 - data_loader - INFO - Successfully loaded 19574 SKU records
+2025-09-23 12:57:40,958 - data_loader - INFO - Enriching order data with SKU master
+2025-09-23 12:57:40,975 - data_loader - INFO - Calculating enrichment fields
+2025-09-23 12:57:40,983 - data_loader - INFO - Enrichment summary:
+2025-09-23 12:57:40,983 - data_loader - INFO -   Total Eaches - Mean: 1294.60, Max: 159936.00
+2025-09-23 12:57:40,983 - data_loader - INFO -   Case Equivalent - Mean: 7.16, Max: 608.00
+2025-09-23 12:57:40,983 - data_loader - INFO -   Pallet Equivalent - Mean: 2.21, Max: 883.33
+2025-09-23 12:57:40,985 - data_loader - INFO - Date range: 2025-02-01 to 2025-04-30 (79 unique dates)
+2025-09-23 12:57:40,985 - data_loader - INFO - Successfully enriched 123307 order records
+2025-09-23 12:57:40,986 - data_loader - INFO - Data loading and enrichment completed successfully
+2025-09-23 12:57:40,987 - OrderAnalyzer - INFO - Running full order analysis
+2025-09-23 12:57:40,987 - OrderAnalyzer - INFO - Generating date-wise order summary
+2025-09-23 12:57:41,007 - OrderAnalyzer - INFO - Generated summary for 79 dates
+2025-09-23 12:57:41,007 - OrderAnalyzer - INFO - Applying FTE calculation to date summary
+2025-09-23 12:57:41,007 - OrderAnalyzer - INFO - Calculating FTE requirements
+2025-09-23 12:57:41,008 - OrderAnalyzer - INFO - FTE calculation completed for 79 days
+2025-09-23 12:57:41,008 - OrderAnalyzer - INFO - Generating SKU-wise order summary
+2025-09-23 12:57:41,014 - OrderAnalyzer - INFO - Generated summary for 890 SKUs
+2025-09-23 12:57:41,014 - OrderAnalyzer - INFO - Generating percentile profile
+2025-09-23 12:57:41,017 - OrderAnalyzer - INFO - Percentile profile generated successfully
+2025-09-23 12:57:41,020 - OrderAnalyzer - INFO - Analyzing demand patterns
+2025-09-23 12:57:41,022 - OrderAnalyzer - INFO - Order analysis completed successfully
+2025-09-23 12:57:41,022 - SkuAnalyzer - INFO - Running full SKU analysis
+2025-09-23 12:57:41,022 - SkuAnalyzer - INFO - Creating comprehensive SKU profile
+2025-09-23 12:57:41,022 - SkuAnalyzer - INFO - Aggregating SKU-level metrics
+2025-09-23 12:57:41,034 - SkuAnalyzer - INFO - Aggregated metrics for 890 SKUs
+2025-09-23 12:57:41,034 - SkuAnalyzer - INFO - Performing FMS classification
+2025-09-23 12:57:41,035 - SkuAnalyzer - INFO - FMS classification completed
+2025-09-23 12:57:41,035 - SkuAnalyzer - INFO - Performing ABC classification
+2025-09-23 12:57:41,035 - SkuAnalyzer - INFO - ABC classification completed
+2025-09-23 12:57:41,037 - SkuAnalyzer - INFO - Calculating movement frequency metrics
+2025-09-23 12:57:41,054 - SkuAnalyzer - INFO - Movement frequency calculation completed
+2025-09-23 12:57:41,058 - SkuAnalyzer - INFO - SKU profile created for 890 SKUs
+2025-09-23 12:57:41,061 - SkuAnalyzer - INFO - SKU analysis completed successfully
+2025-09-23 12:57:41,061 - CrossTabulationAnalyzer - INFO - Initialized cross-tabulation analyzer with 890 SKUs
+2025-09-23 12:57:41,062 - CrossTabulationAnalyzer - INFO - Running full cross-tabulation analysis
+2025-09-23 12:57:41,062 - CrossTabulationAnalyzer - INFO - Creating comprehensive ABC×FMS summary
+2025-09-23 12:57:41,062 - CrossTabulationAnalyzer - INFO - Creating SKU count cross-tabulation
+2025-09-23 12:57:41,064 - CrossTabulationAnalyzer - INFO - Creating volume cross-tabulation
+2025-09-23 12:57:41,065 - CrossTabulationAnalyzer - INFO - Creating order lines cross-tabulation
+2025-09-23 12:57:41,070 - CrossTabulationAnalyzer - INFO - ABC×FMS summary created successfully
+2025-09-23 12:57:41,072 - CrossTabulationAnalyzer - INFO - Creating SKU count cross-tabulation
+2025-09-23 12:57:41,073 - CrossTabulationAnalyzer - INFO - Creating volume cross-tabulation
+2025-09-23 12:57:41,074 - CrossTabulationAnalyzer - INFO - Creating order lines cross-tabulation
+2025-09-23 12:57:41,075 - CrossTabulationAnalyzer - INFO - Cross-tabulation analysis completed successfully
+2025-09-23 12:57:41,076 - ChartGenerator - INFO - Chart generator initialized with output directory: report/charts
+2025-09-23 12:57:41,076 - ChartGenerator - INFO - Generating all charts
+2025-09-23 12:57:41,076 - ChartGenerator - INFO - Generating date time series charts
+2025-09-23 12:57:41,160 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-09-23 12:57:41,161 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-09-23 12:57:41,315 - ChartGenerator - INFO - Date time series charts generated successfully
+2025-09-23 12:57:41,316 - ChartGenerator - INFO - Generating percentile chart
+2025-09-23 12:57:41,352 - ChartGenerator - INFO - Percentile chart generated successfully
+2025-09-23 12:57:41,352 - ChartGenerator - INFO - Generating SKU Pareto chart
+2025-09-23 12:57:41,432 - ChartGenerator - INFO - SKU Pareto chart generated successfully
+2025-09-23 12:57:41,432 - ChartGenerator - INFO - Generating ABC volume stacked chart
+2025-09-23 12:57:41,483 - ChartGenerator - INFO - ABC volume stacked chart generated successfully
+2025-09-23 12:57:41,483 - ChartGenerator - INFO - Generating ABC×FMS heatmap
+2025-09-23 12:57:41,541 - ChartGenerator - INFO - ABC×FMS heatmap generated successfully
+2025-09-23 12:57:41,541 - ChartGenerator - INFO - Generated 6 charts successfully
+2025-09-23 12:57:41,541 - ExcelExporter - INFO - Excel exporter initialized with output: Order_Profiles.xlsx
+2025-09-23 12:57:41,541 - ExcelExporter - INFO - Exporting analysis results to Excel: Order_Profiles.xlsx
+2025-09-23 12:57:41,541 - ExcelExporter - INFO - Preparing DataFrames for Excel export
+2025-09-23 12:57:41,541 - ExcelExporter - INFO - Prepared 5 sheets for export
+2025-09-23 12:57:41,541 - ExcelExporter - INFO - Formatting DataFrames for Excel export
+2025-09-23 12:57:41,698 - ExcelExporter - INFO - ✅ Analysis complete! Results written to Order_Profiles.xlsx
+2025-09-23 12:57:41,698 - LLMIntegration - INFO - Loaded 27 cached LLM responses
+2025-09-23 12:57:41,698 - LLMIntegration - INFO - LLM integration initialized
+2025-09-23 12:57:41,698 - LLMIntegration - INFO - Generating LLM summaries for all sections
+2025-09-23 12:57:43,099 - LLMIntegration - INFO - Generated 5 LLM summaries
+2025-09-23 12:57:43,100 - HTMLReportGenerator - INFO - HTML report generator initialized with output: report/Order_Profiles_Analysis.html
+2025-09-23 12:57:43,100 - HTMLReportGenerator - INFO - Generating HTML report
+2025-09-23 12:57:43,100 - HTMLReportGenerator - INFO - Preparing HTML tables
+2025-09-23 12:57:43,118 - HTMLReportGenerator - INFO - Prepared 5 HTML tables
+2025-09-23 12:57:43,131 - HTMLReportGenerator - INFO - HTML report generated successfully: report/Order_Profiles_Analysis.html

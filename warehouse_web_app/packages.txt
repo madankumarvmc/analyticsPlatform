@@ -1,0 +1,17 @@
+# System packages required for the application
+# These will be installed via apt-get on Streamlit Cloud
+
+# Required for pandas/numpy compilation and Excel file handling
+build-essential
+python3-dev
+libssl-dev
+libffi-dev
+
+# Optional: For enhanced plotting capabilities
+libfreetype6-dev
+libpng-dev
+libjpeg-dev
+
+# Optional: For better file handling
+libxml2-dev
+libxslt1-dev
