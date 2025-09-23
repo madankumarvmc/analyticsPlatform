@@ -83,6 +83,8 @@ class HeaderComponent:
                     output_format='auto'
                 )
             except Exception as e:
+                # Debug: Show what went wrong (temporary)
+                st.warning(f"Logo loading failed: {str(e)} | Path: {logo_path}")
                 # Fallback to default logo on any error
                 self._render_default_logo_content()
         else:
