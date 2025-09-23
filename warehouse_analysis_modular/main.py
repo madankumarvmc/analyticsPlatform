@@ -77,7 +77,7 @@ class WarehouseAnalysisPipeline:
         """
         self.logger.info("Loading and enriching data")
         try:
-            enriched_data = load_and_enrich_data()
+            enriched_data = load_and_enrich_data()  # Uses default file path from config
             self.logger.info(f"Successfully loaded {len(enriched_data)} records")
             return enriched_data
         except Exception as e:

@@ -30,7 +30,7 @@ except ImportError as e:
 
 # Import data loading functionality
 try:
-    from data_loader import load_order_data, load_sku_master, enrich_order_data
+    from data_loader import load_order_data, load_sku_master, enrich_order_data, load_and_enrich_data
     DATA_LOADER_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Data loader not available: {e}")
@@ -118,7 +118,6 @@ class WebAnalysisIntegrator:
             # Load data using existing data loader if available
             if DATA_LOADER_AVAILABLE:
                 # Use the new file_path parameter instead of modifying global config
-                from data_loader import load_and_enrich_data
                 enriched_data = load_and_enrich_data(tmp_path)
                 return enriched_data
             else:
