@@ -67,7 +67,7 @@ def main():
     create_header(
         title="Warehouse Analysis Platform",
         subtitle="Advanced Analytics for Warehouse Operations",
-        logo_path="assets/sbx_logo.png",  # Use SBX logo
+        logo_path="assets/sbx_logo1.png",  # Use SBX logo1 for header
         show_navigation=False  # Minimalistic design without navigation
     )
     
