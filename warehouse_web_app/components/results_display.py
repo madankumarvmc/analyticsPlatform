@@ -901,9 +901,58 @@ class ResultsDisplayManager:
                     st.info("HTML report available when enabled in analysis configuration")
             
             with col3:
+                # Word Report Generation
+                st.markdown("### 📝 MS Word Report")
+                if st.button("🚀 Generate Word Report", use_container_width=True, type="primary"):
+                    try:
+                        with st.spinner("Generating professional Word document..."):
+                            from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                            
+                            # Get analysis results from session state
+                            analysis_results = st.session_state.get('analysis_results', {})
+                            
+                            if analysis_results:
+                                # Generate Word report
+                                word_path = generate_word_report(analysis_results)
+                                
+                                # Store in outputs for download
+                                if 'word_report' not in outputs:
+                                    outputs['word_report'] = str(word_path)
+                                
+                                st.success("✅ Word Report Generated!")
+                                st.rerun()
+                            else:
+                                st.error("No analysis results available for Word report generation.")
+                    except ImportError as e:
+                        st.error("Word report generation requires python-docx package. Please install it.")
+                    except Exception as e:
+                        st.error(f"Failed to generate Word report: {str(e)}")
+                
+                # Download Word report if available
+                if 'word_report' in outputs:
+                    word_path = outputs['word_report']
+                    try:
+                        with open(word_path, 'rb') as f:
+                            word_data = f.read()
+                        
+                        st.download_button(
+                            "📝 Download Word Report",
+                            data=word_data,
+                            file_name="warehouse_analysis_report.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            use_container_width=True
+                        )
+                        
+                        # Show file info
+                        file_size = len(word_data) / 1024  # KB
+                        st.caption(f"File size: {file_size:.1f} KB")
+                        
+                    except Exception as e:
+                        st.error("Unable to prepare Word report for download.")
+                
+                # AI Insights in expandable section
                 if 'llm_summaries' in outputs:
-                    st.success("✅ AI Insights Generated")
-                    with st.expander("🤖 View AI Summary"):
+                    with st.expander("🤖 View AI Insights"):
                         summaries = outputs['llm_summaries']
                         if isinstance(summaries, dict):
                             for key, summary in summaries.items():

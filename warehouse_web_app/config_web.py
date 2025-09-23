@@ -75,7 +75,8 @@ DEFAULT_OUTPUT_OPTIONS = {
     'generate_charts': True,
     'generate_llm_summaries': True,
     'generate_html_report': True,
-    'generate_excel_export': True
+    'generate_excel_export': True,
+    'generate_word_report': False  # Optional due to dependency requirements
 }
 
 # Default FTE (Full-Time Equivalent) calculation parameters

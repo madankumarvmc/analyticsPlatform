@@ -197,7 +197,7 @@ SKU456, Furniture, 1, 20
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #666; font-size: 0.9rem; margin-top: 2rem;">
-        🏭 Warehouse Analysis Tool v2.0 
+        Warehouse Analysis Tool v2.0 
     </div>
     """, unsafe_allow_html=True)
 

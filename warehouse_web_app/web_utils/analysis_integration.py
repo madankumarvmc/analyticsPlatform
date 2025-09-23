@@ -268,6 +268,17 @@ class WebAnalysisIntegrator:
                 summaries = outputs.get('llm_summaries', {})
                 html_path = html_generator.generate_report(analysis_results, chart_paths, summaries)
                 outputs['html_report'] = html_path
+            
+            # Generate Word report
+            if output_options.get('generate_word_report', False) and BACKEND_AVAILABLE:
+                try:
+                    from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                    word_path = generate_word_report(analysis_results)
+                    outputs['word_report'] = word_path
+                except ImportError:
+                    self.logger.warning("Word report generation requires python-docx package")
+                except Exception as e:
+                    self.logger.error(f"Word report generation failed: {str(e)}")
                 
         except Exception as e:
             self.logger.error(f"Output generation failed: {str(e)}")

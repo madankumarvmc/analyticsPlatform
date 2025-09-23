@@ -196,6 +196,13 @@ class ParameterController:
                 help="Export detailed results to Excel",
                 key="generate_excel_export"
             )
+            
+            generate_word_report = st.checkbox(
+                "📝 MS Word Report",
+                value=DEFAULT_OUTPUT_OPTIONS['generate_word_report'],
+                help="Generate professional Word document with AI insights",
+                key="generate_word_report"
+            )
         
         # Advanced options
         with st.expander("🔧 Advanced Options"):
@@ -243,6 +250,7 @@ class ParameterController:
             'generate_llm_summaries': generate_llm_summaries,
             'generate_html_report': generate_html_report,
             'generate_excel_export': generate_excel_export,
+            'generate_word_report': generate_word_report,
             'chart_style': chart_style,
             'chart_dpi': chart_dpi,
             'max_table_rows': max_table_rows,

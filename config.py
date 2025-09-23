@@ -47,6 +47,7 @@ SKU_MASTER_SHEET = "SkuMaster"
 
 # Output file names
 EXCEL_OUTPUT_FILE = "Order_Profiles.xlsx"
+WORD_OUTPUT_FILE = "Warehouse_Analysis_Report.docx"
 
 # Report directories - environment dependent
 if is_streamlit_cloud():
@@ -63,6 +64,7 @@ ASSETS_DIR = REPORT_DIR / "assets"
 
 # Output files
 HTML_FILE = REPORT_DIR / "Order_Profiles_Analysis.html"
+WORD_FILE = REPORT_DIR / WORD_OUTPUT_FILE
 METADATA_FILE = REPORT_DIR / "metadata.json"
 CACHE_FILE = REPORT_DIR / "llm_cache.json"
 
@@ -238,6 +240,7 @@ VERBOSE_OUTPUT = True
 SUCCESS_MESSAGES = {
     'analysis_complete': '✅ Analysis complete! Results written to {}',
     'html_report_built': '✅ HTML report built: {}',
+    'word_report_built': '✅ Word report built: {}',
     'charts_generated': ' - Charts directory: {}',
     'view_instructions': ' - If you want to view: open {} in a browser or run: cd {}; python -m http.server 8000'
 }
