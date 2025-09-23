@@ -79,7 +79,7 @@ class HeaderComponent:
                 st.image(
                     logo_path,
                     width=None,  # Let CSS control the size
-                    use_column_width=False,
+                    use_container_width=False,
                     output_format='auto'
                 )
             except Exception as e:
