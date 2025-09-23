@@ -69,43 +69,41 @@ class HeaderComponent:
         st.markdown('</div>', unsafe_allow_html=True)
     
     def _render_logo(self, logo_path: Optional[str] = None) -> None:
-        """Render the logo section."""
-        if logo_path and Path(logo_path).exists():
-            # Use custom logo
+        """Render the logo section using Streamlit's native image handling."""
+        # Create a container with custom CSS styling
+        st.markdown('<div class="wh-logo-container">', unsafe_allow_html=True)
+        
+        if logo_path:
             try:
-                with open(logo_path, "rb") as f:
-                    logo_data = f.read()
-                    logo_base64 = base64.b64encode(logo_data).decode()
-                    
-                # Determine image type
-                ext = Path(logo_path).suffix.lower()
-                mime_type = {
-                    '.png': 'image/png',
-                    '.jpg': 'image/jpeg', 
-                    '.jpeg': 'image/jpeg',
-                    '.svg': 'image/svg+xml',
-                    '.gif': 'image/gif'
-                }.get(ext, 'image/png')
-                
-                st.markdown(f"""
-                <div class="wh-logo-container">
-                    <img src="data:{mime_type};base64,{logo_base64}" class="wh-logo-image" alt="Logo">
-                </div>
-                """, unsafe_allow_html=True)
+                # Use st.image() which works reliably on both local and Streamlit Cloud
+                st.image(
+                    logo_path,
+                    width=None,  # Let CSS control the size
+                    use_column_width=False,
+                    output_format='auto'
+                )
             except Exception as e:
-                st.error(f"Error loading logo: {e}")
-                self._render_default_logo()
+                # Fallback to default logo on any error
+                self._render_default_logo_content()
         else:
-            # Use default logo
-            self._render_default_logo()
+            # Use default logo when no path provided
+            self._render_default_logo_content()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    def _render_default_logo(self) -> None:
-        """Render the default SVG logo."""
+    def _render_default_logo_content(self) -> None:
+        """Render just the default SVG logo content."""
         st.markdown(f"""
-        <div class="wh-logo-container">
+        <div style="display: flex; align-items: center; justify-content: flex-start; height: 60px;">
             {self.default_logo_svg}
         </div>
         """, unsafe_allow_html=True)
+    
+    def _render_default_logo(self) -> None:
+        """Render the default SVG logo."""
+        st.markdown('<div class="wh-logo-container">', unsafe_allow_html=True)
+        self._render_default_logo_content()
+        st.markdown('</div>', unsafe_allow_html=True)
     
     def _render_title(self, title: str, subtitle: str) -> None:
         """Render the title section."""
@@ -188,6 +186,25 @@ class HeaderComponent:
                 overflow: hidden;
             }
             
+            /* Style Streamlit's generated img elements within logo container */
+            .wh-logo-container img {
+                max-height: 50px !important;
+                max-width: 100px !important;
+                width: auto !important;
+                height: auto !important;
+                filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.1));
+                border-radius: 4px;
+                object-fit: contain;
+            }
+            
+            /* Streamlit generates a div wrapper for images - style it too */
+            .wh-logo-container > div {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+            }
+            
+            /* Legacy support for old image class */
             .wh-logo-image {
                 max-height: 50px;
                 max-width: 100px;
