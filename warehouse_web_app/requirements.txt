@@ -1,0 +1,43 @@
+# Streamlit Web Application Dependencies
+# Core Streamlit framework
+streamlit==1.28.1
+
+# Data manipulation and analysis
+pandas==2.1.4
+numpy==1.24.3
+
+# Visualization
+matplotlib==3.7.2
+plotly==5.17.0
+seaborn==0.13.0
+
+# Excel file handling
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# HTML template rendering
+jinja2==3.1.2
+
+# HTTP requests for LLM integration
+requests==2.31.0
+
+# File handling and utilities
+pathlib2==2.3.7
+
+# Additional utilities
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Optional: Enhanced UI components
+streamlit-option-menu==0.3.6
+streamlit-aggrid==0.3.4.post3
+streamlit-plotly-events==0.0.6
+
+# Optional: Authentication (for future use)
+streamlit-authenticator==0.2.3
+
+# Development and debugging
+logging==0.4.9.6
+
+# Performance optimization
+cachetools==5.3.2

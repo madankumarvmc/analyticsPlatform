@@ -30,7 +30,51 @@ logger = setup_logging()
 
 class SkuAnalyzer:
     """
-    Handles SKU-level analysis including ABC-FMS classification.
+    Handles comprehensive SKU-level analysis and classification for warehouse optimization.
+    
+    This analyzer performs detailed SKU profiling including ABC classification (volume-based),
+    FMS classification (movement frequency-based), and comprehensive SKU performance metrics.
+    It's essential for inventory management, slotting optimization, and warehouse layout decisions.
+    
+    Key Capabilities:
+    - ABC Classification: Volume-based Pareto analysis (A: 0-70%, B: 70-90%, C: 90-100%)
+    - FMS Classification: Movement frequency analysis (Fast/Medium/Slow moving)
+    - 2D Classification: Combined ABC×FMS categorization
+    - Movement Frequency: Days active, orders per movement day
+    - Cumulative Analysis: Percentage calculations and rankings
+    - Statistical Profiling: SKU distribution and performance metrics
+    
+    Classification Logic:
+    - ABC based on cumulative volume percentage (configurable thresholds)
+    - FMS based on cumulative order line frequency
+    - Combined 2D classification for strategic SKU management
+    
+    Input Requirements:
+    - Enriched order data with SKU-level transactions
+    - Required columns: Sku Code, Order No., Date, Case_Equivalent
+    
+    Output Applications:
+    - Inventory optimization and ABC analysis
+    - Slotting and warehouse layout optimization  
+    - Purchase planning and vendor management
+    - Storage allocation and picking optimization
+    - Performance monitoring and SKU lifecycle management
+    
+    Example:
+        # Initialize with enriched order data
+        analyzer = SkuAnalyzer(enriched_order_data)
+        
+        # Run complete SKU analysis
+        results = analyzer.run_full_analysis()
+        
+        # Access SKU profile with classifications
+        sku_profile = results['sku_profile_abc_fms']
+        
+        # Get high-value, fast-moving SKUs
+        a_fast_skus = sku_profile[
+            (sku_profile['ABC'] == 'A') & 
+            (sku_profile['FMS'] == 'F')
+        ]
     """
     
     def __init__(self, enriched_data: pd.DataFrame):

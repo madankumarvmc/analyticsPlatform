@@ -27,7 +27,58 @@ logger = setup_logging()
 
 class CrossTabulationAnalyzer:
     """
-    Handles ABC×FMS cross-tabulation analysis.
+    Handles comprehensive ABC×FMS cross-tabulation analysis for strategic SKU insights.
+    
+    This analyzer creates detailed cross-tabulation matrices that reveal the relationship
+    between volume-based ABC classification and movement frequency-based FMS classification.
+    It provides multi-dimensional analysis across SKU counts, volumes, and order lines to
+    support strategic inventory and warehouse management decisions.
+    
+    Key Capabilities:
+    - Multi-dimensional Cross-tabulation: SKU count, volume, and order line matrices
+    - Percentage Distribution Analysis: Relative distribution across categories
+    - Comprehensive Summary Tables: Integrated ABC×FMS overview
+    - Strategic Insights: Dominant categories and distribution patterns
+    - Matrix Visualization: Heatmap-ready data structures
+    
+    Analysis Dimensions:
+    - SKU Count Matrix: Number of SKUs in each ABC×FMS combination
+    - Volume Matrix: Total volume distribution across categories
+    - Order Lines Matrix: Order line frequency distribution
+    - Percentage Matrices: Relative distribution analysis
+    
+    Input Requirements:
+    - Complete SKU profile with ABC and FMS classifications
+    - Required columns: Sku Code, Total_Order_Lines, Total_Case_Equiv, ABC, FMS
+    - Data should come from SkuAnalyzer output
+    
+    Business Applications:
+    - Strategic inventory segmentation and planning
+    - Warehouse layout and slotting optimization
+    - Resource allocation and capacity planning
+    - Performance benchmarking and KPI development
+    - Vendor and supplier relationship management
+    
+    Strategic Insights:
+    - High-value, fast-moving SKUs (A×F): Premium slotting locations
+    - High-value, slow-moving SKUs (A×S): Special handling considerations
+    - Low-value, fast-moving SKUs (C×F): Efficiency optimization opportunities
+    - Distribution patterns: Overall inventory balance analysis
+    
+    Example:
+        # Initialize with SKU profile from SkuAnalyzer
+        sku_profile = sku_analyzer.run_full_analysis()['sku_profile_abc_fms']
+        analyzer = CrossTabulationAnalyzer(sku_profile)
+        
+        # Run cross-tabulation analysis
+        results = analyzer.run_full_analysis()
+        
+        # Access comprehensive summary
+        abc_fms_summary = results['abc_fms_summary']
+        
+        # Get insights for strategic decisions
+        insights = results['insights']
+        dominant_category = insights['dominant_categories']['highest_volume_category']
     """
     
     def __init__(self, sku_profile_abc_fms: pd.DataFrame):
