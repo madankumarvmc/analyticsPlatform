@@ -30,10 +30,25 @@ except ImportError as e:
     st.error(f"Failed to import web app modules: {e}")
     st.stop()
 
+# Function to get favicon path
+def get_favicon_path():
+    """Get favicon path, fallback to emoji if file not found."""
+    # Try to use sbx_logo.png as favicon first
+    sbx_logo_path = Path(__file__).parent / "assets" / "sbx_logo.png"
+    if sbx_logo_path.exists():
+        return str(sbx_logo_path)
+    
+    # Fallback to favicon.ico
+    favicon_path = Path(__file__).parent / "assets" / "favicon.ico"
+    if favicon_path.exists():
+        return str(favicon_path)
+    
+    return "🏭"  # Final fallback emoji
+
 # Configure page
 st.set_page_config(
     page_title="Warehouse Analysis Tool",
-    page_icon="🏭",
+    page_icon=get_favicon_path(),
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -50,10 +65,10 @@ def main():
     
     # Create header with logo
     create_header(
-        title="Warehouse Analysis Tool",
+        title="Warehouse Analysis Platform",
         subtitle="Advanced Analytics for Warehouse Operations",
-        logo_path=None,  # Will use default SVG logo
-        show_navigation=True
+        logo_path="assets/sbx_logo.png",  # Use SBX logo
+        show_navigation=False  # Minimalistic design without navigation
     )
     
     # Initialize session state

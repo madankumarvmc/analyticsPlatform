@@ -38,26 +38,35 @@ class HeaderComponent:
         # Header content wrapped in container
         st.markdown('<div class="wh-header-container">', unsafe_allow_html=True)
         
-        # Header content
-        col1, col2, col3 = st.columns([1, 4, 1])
-        
-        with col1:
-            # Logo section
-            self._render_logo(logo_path)
-        
-        with col2:
-            # Title section
-            self._render_title(title, subtitle)
-        
-        with col3:
-            # Navigation/actions section
-            if show_navigation:
+        # Header content - minimalistic layout
+        if show_navigation:
+            # Original 3-column layout when navigation is needed
+            col1, col2, col3 = st.columns([1, 4, 1])
+            
+            with col1:
+                # Logo section
+                self._render_logo(logo_path)
+            
+            with col2:
+                # Title section
+                self._render_title(title, subtitle)
+            
+            with col3:
+                # Navigation/actions section
                 self._render_navigation()
+        else:
+            # Minimalistic 2-column layout without navigation
+            col1, col2 = st.columns([1, 4])
+            
+            with col1:
+                # Logo section
+                self._render_logo(logo_path)
+            
+            with col2:
+                # Title section
+                self._render_title(title, subtitle)
         
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Header divider
-        st.markdown('<div class="wh-header-divider"></div>', unsafe_allow_html=True)
     
     def _render_logo(self, logo_path: Optional[str] = None) -> None:
         """Render the logo section."""
@@ -149,29 +158,43 @@ class HeaderComponent:
         """Get CSS styles for the header."""
         return """
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            
             .wh-header-container {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 1rem 2rem;
-                margin: -1rem -1rem 2rem -1rem;
-                border-radius: 0 0 15px 15px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                padding: 2rem 2rem 1.5rem 2rem;
+                margin: -1rem -1rem 2.5rem -1rem;
+                border-bottom: 1px solid #e2e8f0;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                 overflow: hidden;
+                position: relative;
+            }
+            
+            .wh-header-container::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
             }
             
             .wh-logo-container {
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                height: 80px;
+                justify-content: flex-start;
+                height: 60px;
                 overflow: hidden;
             }
             
             .wh-logo-image {
-                max-height: 70px;
-                max-width: 120px;
+                max-height: 50px;
+                max-width: 100px;
                 width: auto;
                 height: auto;
-                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+                filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.1));
+                border-radius: 4px;
             }
             
             .wh-title-container {
@@ -179,25 +202,57 @@ class HeaderComponent:
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                height: 80px;
+                height: 60px;
                 text-align: center;
             }
             
             .wh-main-title {
-                color: white;
-                font-size: 2.5rem;
-                font-weight: 700;
+                color: #1e293b;
+                font-size: 2.2rem;
+                font-weight: 600;
                 margin: 0;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                letter-spacing: -0.5px;
+                line-height: 1.2;
             }
             
             .wh-subtitle {
-                color: rgba(255, 255, 255, 0.9);
-                font-size: 1.1rem;
-                margin: 0.25rem 0 0 0;
-                font-weight: 300;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                color: #64748b;
+                font-size: 0.95rem;
+                margin: 0.3rem 0 0 0;
+                font-weight: 400;
+                font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.4;
+            }
+            
+            /* Responsive design */
+            @media (max-width: 768px) {
+                .wh-header-container {
+                    padding: 1.5rem 1rem;
+                }
+                
+                .wh-main-title {
+                    font-size: 1.8rem;
+                }
+                
+                .wh-subtitle {
+                    font-size: 0.85rem;
+                }
+                
+                .wh-logo-image {
+                    max-height: 40px;
+                    max-width: 80px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .wh-main-title {
+                    font-size: 1.5rem;
+                }
+                
+                .wh-subtitle {
+                    font-size: 0.8rem;
+                }
             }
             
             .wh-nav-container {
