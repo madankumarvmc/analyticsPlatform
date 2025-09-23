@@ -9,11 +9,33 @@ import os
 from pathlib import Path
 
 # =============================================================================
+# ENVIRONMENT DETECTION
+# =============================================================================
+
+def is_streamlit_cloud():
+    """Detect if running on Streamlit Cloud."""
+    return (
+        os.environ.get('STREAMLIT_SHARING_MODE') == '1' or
+        os.environ.get('STREAMLIT_SERVER_HEADLESS') == 'true' or
+        'streamlit' in os.environ.get('HOME', '').lower() or
+        '/mount/src/' in os.getcwd()
+    )
+
+def is_local_development():
+    """Detect if running in local development."""
+    return not is_streamlit_cloud()
+
+# =============================================================================
 # DATA PATHS AND FILES
 # =============================================================================
 
-# Main data file location
-DATA_FILE_PATH = "/Users/MKSBX/Documents/Analytics Tool/TestData.xlsx"
+# Main data file location - environment dependent
+if is_streamlit_cloud():
+    # On Streamlit Cloud, no default file path (must use uploaded files)
+    DATA_FILE_PATH = None
+else:
+    # Local development path
+    DATA_FILE_PATH = "/Users/MKSBX/Documents/Analytics Tool/TestData.xlsx"
 
 # Sheet names in the Excel file
 ORDER_DATA_SHEET = "OrderData"
@@ -26,8 +48,16 @@ SKU_MASTER_SHEET = "SkuMaster"
 # Output file names
 EXCEL_OUTPUT_FILE = "Order_Profiles.xlsx"
 
-# Report directories
-REPORT_DIR = Path("report")
+# Report directories - environment dependent
+if is_streamlit_cloud():
+    # On Streamlit Cloud, use temp directory for outputs
+    import tempfile
+    TEMP_DIR = Path(tempfile.gettempdir())
+    REPORT_DIR = TEMP_DIR / "warehouse_analysis_reports"
+else:
+    # Local development
+    REPORT_DIR = Path("report")
+
 CHARTS_DIR = REPORT_DIR / "charts"
 ASSETS_DIR = REPORT_DIR / "assets"
 
@@ -35,6 +65,11 @@ ASSETS_DIR = REPORT_DIR / "assets"
 HTML_FILE = REPORT_DIR / "Order_Profiles_Analysis.html"
 METADATA_FILE = REPORT_DIR / "metadata.json"
 CACHE_FILE = REPORT_DIR / "llm_cache.json"
+
+# Ensure directories exist
+REPORT_DIR.mkdir(exist_ok=True)
+CHARTS_DIR.mkdir(exist_ok=True)
+ASSETS_DIR.mkdir(exist_ok=True)
 
 # =============================================================================
 # ANALYSIS PARAMETERS

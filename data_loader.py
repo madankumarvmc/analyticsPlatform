@@ -26,9 +26,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_order_data() -> pd.DataFrame:
+def load_order_data(file_path: str = None) -> pd.DataFrame:
     """
     Load order data from Excel file.
+    
+    Args:
+        file_path: Optional path to Excel file. If None, uses DATA_FILE_PATH from config.
     
     Returns:
         pd.DataFrame: Raw order data with columns:
@@ -39,10 +42,16 @@ def load_order_data() -> pd.DataFrame:
         FileNotFoundError: If the data file doesn't exist
         ValueError: If required columns are missing
     """
+    # Use provided file path or fall back to config
+    data_file = file_path if file_path is not None else DATA_FILE_PATH
+    
+    if data_file is None:
+        raise ValueError("No data file path provided and DATA_FILE_PATH is None (likely running on Streamlit Cloud)")
+    
     try:
-        logger.info(f"Loading order data from {DATA_FILE_PATH}, sheet: {ORDER_DATA_SHEET}")
+        logger.info(f"Loading order data from {data_file}, sheet: {ORDER_DATA_SHEET}")
         
-        order_df = pd.read_excel(DATA_FILE_PATH, sheet_name=ORDER_DATA_SHEET)
+        order_df = pd.read_excel(data_file, sheet_name=ORDER_DATA_SHEET)
         
         # Validate required columns exist
         expected_cols = set(ORDER_DATA_COLUMNS.values())
@@ -71,9 +80,12 @@ def load_order_data() -> pd.DataFrame:
         raise
 
 
-def load_sku_master() -> pd.DataFrame:
+def load_sku_master(file_path: str = None) -> pd.DataFrame:
     """
     Load SKU master data from Excel file.
+    
+    Args:
+        file_path: Optional path to Excel file. If None, uses DATA_FILE_PATH from config.
     
     Returns:
         pd.DataFrame: SKU master data with columns:
@@ -83,10 +95,16 @@ def load_sku_master() -> pd.DataFrame:
         FileNotFoundError: If the data file doesn't exist
         ValueError: If required columns are missing
     """
+    # Use provided file path or fall back to config
+    data_file = file_path if file_path is not None else DATA_FILE_PATH
+    
+    if data_file is None:
+        raise ValueError("No data file path provided and DATA_FILE_PATH is None (likely running on Streamlit Cloud)")
+    
     try:
-        logger.info(f"Loading SKU master from {DATA_FILE_PATH}, sheet: {SKU_MASTER_SHEET}")
+        logger.info(f"Loading SKU master from {data_file}, sheet: {SKU_MASTER_SHEET}")
         
-        sku_df = pd.read_excel(DATA_FILE_PATH, sheet_name=SKU_MASTER_SHEET)
+        sku_df = pd.read_excel(data_file, sheet_name=SKU_MASTER_SHEET)
         
         # Validate required columns exist
         expected_cols = set(SKU_MASTER_COLUMNS.values())
@@ -228,9 +246,12 @@ def enrich_order_data(order_df: pd.DataFrame, sku_df: pd.DataFrame) -> pd.DataFr
     return enriched_data
 
 
-def load_and_enrich_data() -> pd.DataFrame:
+def load_and_enrich_data(file_path: str = None) -> pd.DataFrame:
     """
     Main function to load and enrich all data.
+    
+    Args:
+        file_path: Optional path to Excel file. If None, uses DATA_FILE_PATH from config.
     
     Returns:
         pd.DataFrame: Fully enriched order data ready for analysis
@@ -240,8 +261,8 @@ def load_and_enrich_data() -> pd.DataFrame:
     """
     try:
         # Load raw data
-        order_df = load_order_data()
-        sku_df = load_sku_master()
+        order_df = load_order_data(file_path)
+        sku_df = load_sku_master(file_path)
         
         # Enrich data
         enriched_data = enrich_order_data(order_df, sku_df)

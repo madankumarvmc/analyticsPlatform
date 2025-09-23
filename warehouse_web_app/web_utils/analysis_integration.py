@@ -117,18 +117,9 @@ class WebAnalysisIntegrator:
         try:
             # Load data using existing data loader if available
             if DATA_LOADER_AVAILABLE:
-                # Temporarily update the data file path
-                import config
-                original_path = config.DATA_FILE_PATH
-                config.DATA_FILE_PATH = tmp_path
-                
-                try:
-                    from data_loader import load_and_enrich_data
-                    enriched_data = load_and_enrich_data()
-                finally:
-                    # Restore original path
-                    config.DATA_FILE_PATH = original_path
-                
+                # Use the new file_path parameter instead of modifying global config
+                from data_loader import load_and_enrich_data
+                enriched_data = load_and_enrich_data(tmp_path)
                 return enriched_data
             else:
                 # Manual data loading
