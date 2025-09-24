@@ -916,14 +916,73 @@ class ResultsDisplayManager:
                                 st.info("🌐 If you're on Streamlit Cloud, the package should be installed automatically from requirements.txt")
                                 return
                             
-                            # Import the Word report generator
+                            # Import the Word report generator with path fixing
                             try:
+                                # Add parent directory to Python path for deployment compatibility
+                                import sys
+                                from pathlib import Path
+                                parent_dir = Path(__file__).parent.parent.parent
+                                if str(parent_dir) not in sys.path:
+                                    sys.path.insert(0, str(parent_dir))
+                                    st.info(f"🔧 Added parent directory to path: {parent_dir}")
+                                
                                 from warehouse_analysis_modular.reporting.word_report import generate_word_report
                                 st.info("🔧 Word report generator loaded successfully")
                             except ImportError as e:
                                 st.error(f"❌ Could not import Word report generator: {str(e)}")
-                                st.info("🔍 Check that the warehouse_analysis_modular package is available")
-                                return
+                                st.info("🔍 Module path issue detected. Checking alternative import methods...")
+                                
+                                # Try alternative import approach and show deployment structure
+                                try:
+                                    # Investigate the deployment file structure
+                                    import os
+                                    current_dir = Path(__file__).parent.parent
+                                    parent_dir = current_dir.parent
+                                    
+                                    st.info(f"🔍 Current directory: {current_dir}")
+                                    st.info(f"🔍 Parent directory: {parent_dir}")
+                                    st.info(f"🔍 Working directory: {os.getcwd()}")
+                                    
+                                    # Show directory contents
+                                    try:
+                                        if parent_dir.exists():
+                                            parent_contents = [f.name for f in parent_dir.iterdir()]
+                                            st.info(f"🔍 Parent directory contents: {parent_contents}")
+                                        else:
+                                            st.info("🔍 Parent directory does not exist")
+                                    except:
+                                        st.info("🔍 Cannot read parent directory contents")
+                                    
+                                    # Check for the warehouse_analysis_modular package
+                                    word_report_path = parent_dir / "warehouse_analysis_modular" / "reporting" / "word_report.py"
+                                    st.info(f"🔍 Looking for word_report at: {word_report_path}")
+                                    st.info(f"🔍 Word report exists: {word_report_path.exists()}")
+                                    
+                                    # Also check current working directory
+                                    cwd_word_report = Path(os.getcwd()) / "warehouse_analysis_modular" / "reporting" / "word_report.py"
+                                    st.info(f"🔍 Also checking in CWD: {cwd_word_report}")
+                                    st.info(f"🔍 CWD word report exists: {cwd_word_report.exists()}")
+                                    
+                                    if word_report_path.exists():
+                                        # Add to path and retry
+                                        sys.path.insert(0, str(parent_dir))
+                                        from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                                        st.success("✅ Word report generator loaded via alternative path")
+                                    elif cwd_word_report.exists():
+                                        # Try from working directory
+                                        sys.path.insert(0, os.getcwd())
+                                        from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                                        st.success("✅ Word report generator loaded from working directory")
+                                    else:
+                                        st.error("❌ Word report module files not found in any expected location")
+                                        st.info("💡 This indicates the warehouse_analysis_modular package was not deployed to Streamlit Cloud")
+                                        st.info("🔧 The package structure may need to be reorganized for cloud deployment")
+                                        return
+                                        
+                                except Exception as alt_e:
+                                    st.error(f"❌ Alternative import failed: {str(alt_e)}")
+                                    st.info("💡 Word document generation requires the warehouse_analysis_modular package")
+                                    return
                             
                             # Get analysis results from session state
                             analysis_results = st.session_state.get('analysis_results', {})
