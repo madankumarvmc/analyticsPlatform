@@ -906,27 +906,65 @@ class ResultsDisplayManager:
                 if st.button("🚀 Generate Word Report", use_container_width=True, type="primary"):
                     try:
                         with st.spinner("Generating professional Word document..."):
-                            from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                            # Check python-docx availability first
+                            try:
+                                import docx
+                                st.info("📦 python-docx package detected")
+                            except ImportError:
+                                st.error("❌ python-docx package not found. This package is required for Word document generation.")
+                                st.info("💡 If you're running this locally, install with: `pip install python-docx`")
+                                st.info("🌐 If you're on Streamlit Cloud, the package should be installed automatically from requirements.txt")
+                                return
+                            
+                            # Import the Word report generator
+                            try:
+                                from warehouse_analysis_modular.reporting.word_report import generate_word_report
+                                st.info("🔧 Word report generator loaded successfully")
+                            except ImportError as e:
+                                st.error(f"❌ Could not import Word report generator: {str(e)}")
+                                st.info("🔍 Check that the warehouse_analysis_modular package is available")
+                                return
                             
                             # Get analysis results from session state
                             analysis_results = st.session_state.get('analysis_results', {})
                             
-                            if analysis_results:
-                                # Generate Word report
+                            if not analysis_results:
+                                st.error("❌ No analysis results available for Word report generation.")
+                                st.info("💡 Please run the analysis first to generate data for the report")
+                                return
+                            
+                            st.info("📊 Analysis results found, starting Word document generation...")
+                            
+                            # Generate Word report
+                            try:
                                 word_path = generate_word_report(analysis_results)
+                                st.info(f"📄 Word document generated at: {word_path}")
+                                
+                                # Verify file exists
+                                if not word_path.exists():
+                                    st.error("❌ Word document was not created successfully")
+                                    return
                                 
                                 # Store in outputs for download
                                 if 'word_report' not in outputs:
                                     outputs['word_report'] = str(word_path)
                                 
-                                st.success("✅ Word Report Generated!")
+                                st.success("✅ Word Report Generated Successfully!")
+                                st.info(f"📁 File size: {word_path.stat().st_size / 1024:.1f} KB")
                                 st.rerun()
-                            else:
-                                st.error("No analysis results available for Word report generation.")
-                    except ImportError as e:
-                        st.error("Word report generation requires python-docx package. Please install it.")
+                                
+                            except Exception as e:
+                                st.error(f"❌ Error during Word document generation: {str(e)}")
+                                st.error(f"🐛 Error type: {type(e).__name__}")
+                                import traceback
+                                st.error(f"🔍 Full error details: {traceback.format_exc()}")
+                                return
+                                
                     except Exception as e:
-                        st.error(f"Failed to generate Word report: {str(e)}")
+                        st.error(f"❌ Unexpected error in Word report generation: {str(e)}")
+                        st.error(f"🐛 Error type: {type(e).__name__}")
+                        import traceback
+                        st.error(f"🔍 Full error details: {traceback.format_exc()}")
                 
                 # Download Word report if available
                 if 'word_report' in outputs:

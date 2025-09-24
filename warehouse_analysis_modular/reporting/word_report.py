@@ -62,8 +62,21 @@ class WordReportGenerator:
         self.llm_integration = llm_integration or LLMIntegration()
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Ensure output directory exists
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Ensure output directory exists and test write permissions
+        try:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            # Test write permissions by creating a temporary file
+            test_file = self.output_dir / "test_write_permissions.tmp"
+            test_file.write_text("test")
+            test_file.unlink()  # Remove test file
+            self.logger.info(f"Output directory confirmed writable: {self.output_dir}")
+        except Exception as e:
+            self.logger.error(f"Cannot write to output directory {self.output_dir}: {e}")
+            # Fallback to current working directory
+            import tempfile
+            self.output_dir = Path(tempfile.gettempdir()) / "warehouse_reports"
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            self.logger.info(f"Using fallback directory: {self.output_dir}")
     
     def _add_heading_with_style(self, doc: Document, text: str, level: int = 1):
         """Add a styled heading to the document."""
@@ -100,24 +113,34 @@ class WordReportGenerator:
     
     def _add_chart_with_insights(self, doc: Document, chart_name: str, chart_path: Path, analysis_results: Dict):
         """Add a chart with AI-generated insights."""
-        if not chart_path.exists():
-            self.logger.warning(f"Chart not found: {chart_path}")
-            return
-        
-        # Add chart title
+        # Add chart title regardless of whether image is available
         chart_title = chart_name.replace('_', ' ').title()
         self._add_heading_with_style(doc, chart_title, level=3)
         
-        # Add chart image
-        try:
-            doc.add_picture(str(chart_path), width=Inches(6))
-            last_paragraph = doc.paragraphs[-1]
-            last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        except Exception as e:
-            self.logger.error(f"Failed to add chart {chart_name}: {e}")
-            doc.add_paragraph(f"[Chart {chart_name} could not be loaded]")
+        # Try to add chart image
+        chart_added = False
+        if chart_path.exists():
+            try:
+                self.logger.info(f"Adding chart image: {chart_path}")
+                doc.add_picture(str(chart_path), width=Inches(6))
+                last_paragraph = doc.paragraphs[-1]
+                last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                chart_added = True
+                self.logger.info(f"Chart {chart_name} added successfully")
+            except Exception as e:
+                self.logger.error(f"Failed to add chart image {chart_name}: {e}")
+        else:
+            self.logger.warning(f"Chart image not found: {chart_path}")
         
-        # Generate AI insights for this chart
+        # Add placeholder if chart couldn't be added
+        if not chart_added:
+            placeholder = doc.add_paragraph(f"📊 Chart: {chart_title}")
+            placeholder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            placeholder.style = 'Intense Quote'
+            note = doc.add_paragraph(f"Note: Chart image ({chart_name}) not available in this report version.")
+            note.style = 'Caption'
+        
+        # Generate AI insights for this chart (even without the image)
         try:
             chart_insights = self._generate_chart_insights(chart_name, analysis_results)
             if chart_insights and not chart_insights.startswith("("):
@@ -289,6 +312,16 @@ class WordReportGenerator:
             raise ImportError("python-docx package is required")
         
         self.logger.info("Starting Word report generation")
+        
+        # Detect environment (helpful for debugging deployment issues)
+        import os
+        env_info = {
+            "platform": os.name,
+            "cwd": os.getcwd(),
+            "streamlit_detected": "streamlit" in os.environ.get("PATH", "").lower() or "STREAMLIT_SERVER_PORT" in os.environ,
+            "python_path": sys.executable if hasattr(sys, 'executable') else "Unknown"
+        }
+        self.logger.info(f"Environment info: {env_info}")
         
         # Generate filename if not provided
         if filename is None:
@@ -462,12 +495,37 @@ class WordReportGenerator:
         except Exception as e:
             self.logger.error(f"Failed to generate recommendations: {e}")
         
-        # Save document
+        # Save document with enhanced error handling
         output_path = self.output_dir / filename
-        doc.save(str(output_path))
         
-        self.logger.info(f"Word report generated successfully: {output_path}")
-        return output_path
+        try:
+            self.logger.info(f"Saving Word document to: {output_path}")
+            doc.save(str(output_path))
+            
+            # Verify file was created successfully
+            if not output_path.exists():
+                raise FileNotFoundError(f"Document was not created at expected path: {output_path}")
+            
+            file_size = output_path.stat().st_size
+            if file_size == 0:
+                raise ValueError("Generated document is empty (0 bytes)")
+            
+            self.logger.info(f"Word report generated successfully: {output_path} ({file_size:,} bytes)")
+            return output_path
+            
+        except PermissionError as e:
+            self.logger.error(f"Permission denied writing to {output_path}: {e}")
+            # Try alternative location
+            import tempfile
+            alt_path = Path(tempfile.gettempdir()) / filename
+            self.logger.info(f"Attempting to save to alternative location: {alt_path}")
+            doc.save(str(alt_path))
+            self.logger.info(f"Word report saved to alternative location: {alt_path}")
+            return alt_path
+            
+        except Exception as e:
+            self.logger.error(f"Failed to save Word document: {e}")
+            raise
 
 
 def generate_word_report(analysis_results: Dict, 

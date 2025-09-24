@@ -1572,3 +1572,4 @@ Exception: Data preparation failed: load_and_enrich_data() takes 0 positional ar
 2025-09-24 14:13:07,674 - LLMIntegration - INFO - Loaded 59 cached LLM responses
 2025-09-24 14:13:07,674 - LLMIntegration - INFO - LLM integration initialized
 2025-09-24 14:13:07,674 - WordReportGenerator - INFO - Starting Word report generation
+2025-09-24 14:14:18,840 - WordReportGenerator - INFO - Word report generated successfully: report/Warehouse_Analysis_Report_20250924_141307.docx
