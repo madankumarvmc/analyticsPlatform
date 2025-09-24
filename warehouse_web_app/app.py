@@ -32,18 +32,16 @@ except ImportError as e:
 
 # Function to get favicon path
 def get_favicon_path():
-    """Get favicon path, fallback to emoji if file not found."""
-    # Try to use sbx_logo.png as favicon first
-    sbx_logo_path = Path(__file__).parent / "assets" / "sbx_logo.png"
-    if sbx_logo_path.exists():
-        return str(sbx_logo_path)
+    """Get favicon using base64 encoded logo for deployment compatibility."""
+    # Base64 encoded SBX logo for browser tab
+    SBX_LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ4AAAEICAYAAACu6Bq4AAAMTGlDQ1BJQ0MgUHJvZmlsZQAASImVVwdYU8kWnltSIQQIREBK6E0QkRJASggtgPQiiEpIAoQSY0JQsaOLCq5dRLCiqyCKHRCxYVcWxe5aFgsqK+tiwa68CQF02Ve+N983d/77z5l/zjl35t47ANDb+VJpDqoJQK4kTxYT7M8al5TMInUCAtAGNDAcePAFciknKiocwDLQ/r28uwkQZXvNQan1z/7/WrSEIrkAACQK4jShXJAL8UEA8CaBVJYHAFEKefOpeVIlXg2xjgw6CHGVEmeocJMSp6nwlT6buBguxE8AIKvz+bIMADS6Ic/KF2RAHTqMFjhJhGIJxH4Q++TmThZCPBdiG2gD56Qr9dlpP+hk/E0zbVCTz88YxKpY+go5QCyX5vCn/5/p+N8lN0cxMIc1rOqZspAYZcwwb0+yJ4cpsTrEHyRpEZEQawOA4mJhn70SMzMVIfEqe9RGIOfCnAEmxGPkObG8fj5GyA8Ig9gQ4nRJTkR4v01hujhIaQPzh5aJ83hxEOtBXCeSB8b125yQTY4ZmPdmuozL6eef82V9Pij1vymy4zkqfUw7U8Tr18ccCzLjEiGmQhyQL06IgFgD4gh5dmxYv01KQSY3YsBGpohRxmIBsUwkCfZX6WOl6bKgmH77nbnygdixE5liXkQ/vpqXGReiyhX2RMDv8x/GgnWLJJz4AR2RfFz4QCxCUUCgKnacLJLEx6jGovbSXOjUP5YYw762M91Qn7vXbHkBBQ46UzvRhQ+wrbZhRKKrquGvC/8AhWy4x8kF17pjX5k11z6nD3jyfNcfDO8nGZjF5a/HcMCDmfVj8GbJfMZzlfaZZjLrLl6VBGwYXZCJlJGTcShAYJ1Bz6vRjdqy67qUjZbGG+w3XGUcpjOhNOFLEBl7Syk7Xk0KsEIUzxHnhZDhIqaGSKOF7LRuOE9U+K3m6JeNWKtdOEJpUUGQwqQdOGP6JhQz8VfeCt6rEPE1IkIGJ5+Eor2MsPiLTnOOuMZBU8G4NMcDAg=="
     
-    # Fallback to favicon.ico
-    favicon_path = Path(__file__).parent / "assets" / "favicon.ico"
-    if favicon_path.exists():
-        return str(favicon_path)
-    
-    return "🏭"  # Final fallback emoji
+    # Try to use the base64 logo first
+    try:
+        return SBX_LOGO_BASE64
+    except:
+        # Fallback to emoji if base64 fails
+        return "🏭"
 
 # Configure page
 st.set_page_config(
@@ -64,12 +62,9 @@ def main():
     """Main application function."""
     
     # Create header with logo
-    # Use absolute path for Streamlit Cloud compatibility
-    logo_path = str(Path(__file__).parent / "assets" / "sbx_logo1.png")
     create_header(
         title="Warehouse Analysis Platform",
         subtitle="Advanced Analytics for Warehouse Operations",
-        logo_path=logo_path,  # Use SBX logo1 for header with absolute path
         show_navigation=False  # Minimalistic design without navigation
     )
     
