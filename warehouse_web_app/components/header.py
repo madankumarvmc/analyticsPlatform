@@ -75,6 +75,16 @@ class HeaderComponent:
         
         if logo_path:
             try:
+                # Debug: Check if file exists before trying to load
+                from pathlib import Path
+                logo_file = Path(logo_path)
+                st.info(f"🔍 Logo debug - Path: {logo_path}")
+                st.info(f"🔍 Logo debug - Absolute path: {logo_file.resolve()}")
+                st.info(f"🔍 Logo debug - File exists: {logo_file.exists()}")
+                
+                if logo_file.exists():
+                    st.info(f"🔍 Logo debug - File size: {logo_file.stat().st_size} bytes")
+                
                 # Use st.image() which works reliably on both local and Streamlit Cloud
                 st.image(
                     logo_path,
@@ -82,11 +92,28 @@ class HeaderComponent:
                     use_container_width=False,
                     output_format='auto'
                 )
+                st.success("✅ Logo loaded successfully!")
+                
             except Exception as e:
                 # Debug: Show what went wrong (temporary)
                 st.warning(f"Logo loading failed: {str(e)} | Path: {logo_path}")
-                # Fallback to default logo on any error
-                self._render_default_logo_content()
+                
+                # Try alternative approaches
+                try:
+                    # Try reading as bytes and using st.image with bytes
+                    if Path(logo_path).exists():
+                        with open(logo_path, 'rb') as f:
+                            logo_bytes = f.read()
+                        st.image(logo_bytes, width=None, use_container_width=False)
+                        st.success("✅ Logo loaded via bytes method!")
+                    else:
+                        st.error(f"❌ Logo file not found at path: {logo_path}")
+                        # Fallback to default logo on any error
+                        self._render_default_logo_content()
+                except Exception as e2:
+                    st.error(f"❌ Alternative logo loading also failed: {str(e2)}")
+                    # Fallback to default logo on any error
+                    self._render_default_logo_content()
         else:
             # Use default logo when no path provided
             self._render_default_logo_content()

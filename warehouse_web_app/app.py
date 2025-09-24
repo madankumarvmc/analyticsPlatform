@@ -64,10 +64,12 @@ def main():
     """Main application function."""
     
     # Create header with logo
+    # Use absolute path for Streamlit Cloud compatibility
+    logo_path = str(Path(__file__).parent / "assets" / "sbx_logo1.png")
     create_header(
         title="Warehouse Analysis Platform",
         subtitle="Advanced Analytics for Warehouse Operations",
-        logo_path="assets/sbx_logo1.png",  # Use SBX logo1 for header
+        logo_path=logo_path,  # Use SBX logo1 for header with absolute path
         show_navigation=False  # Minimalistic design without navigation
     )
     
