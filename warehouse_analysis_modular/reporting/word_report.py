@@ -97,19 +97,48 @@ class WordReportGenerator:
         return paragraph
     
     def _add_ai_insight_section(self, doc: Document, title: str, insight_text: str):
-        """Add an AI insight section with special formatting."""
+        """Add an AI insight section with special formatting and bullet points."""
         # Add insight heading
         heading = doc.add_paragraph()
         run = heading.add_run(f"💡 AI Insights: {title}")
         run.font.size = Pt(12)
         run.font.bold = True
         
-        # Add insight content in a styled box
-        insight_para = doc.add_paragraph()
-        insight_para.style = 'Quote'
-        insight_para.add_run(insight_text)
+        # Parse and format bullet points with bold headers
+        insight_lines = insight_text.split('\n')
+        for line in insight_lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            insight_para = doc.add_paragraph()
+            
+            # Check if line starts with bullet point
+            if line.startswith('•') or line.startswith('-'):
+                # Remove bullet marker and split on bold markers
+                clean_line = line.lstrip('•-').strip()
+                
+                # Look for bold headers (text between ** markers)
+                if '**' in clean_line:
+                    parts = clean_line.split('**')
+                    for i, part in enumerate(parts):
+                        if i % 2 == 1:  # Odd indices are bold text
+                            run = insight_para.add_run(part)
+                            run.font.bold = True
+                        else:  # Even indices are regular text
+                            insight_para.add_run(part)
+                else:
+                    # No bold formatting found
+                    insight_para.add_run(clean_line)
+                    
+                # Apply bullet style
+                insight_para.style = 'List Bullet'
+            else:
+                # Regular paragraph
+                insight_para.add_run(line)
+                insight_para.style = 'Quote'
         
-        return heading, insight_para
+        return heading
     
     def _add_chart_with_insights(self, doc: Document, chart_name: str, chart_path: Path, analysis_results: Dict):
         """Add a chart with AI-generated insights."""
@@ -204,7 +233,7 @@ class WordReportGenerator:
         
         return facts
     
-    def _add_data_table(self, doc: Document, title: str, data: pd.DataFrame, max_rows: int = 10):
+    def _add_data_table(self, doc: Document, title: str, data: pd.DataFrame, max_rows: int = 3):
         """Add a formatted data table to the document."""
         if data is None or data.empty:
             return
@@ -243,55 +272,123 @@ class WordReportGenerator:
         doc.add_paragraph()  # Add spacing
     
     def _add_executive_summary(self, doc: Document, analysis_results: Dict):
-        """Add executive summary with AI insights."""
+        """Add executive summary with enhanced data extraction (exactly 2 paragraphs)."""
         self._add_heading_with_style(doc, "Executive Summary", level=1)
         
-        # Generate AI-powered executive summary
+        # Extract specific numbers for enhanced executive summary
+        stats = analysis_results.get('order_statistics', {})
+        date_summary = analysis_results.get('date_order_summary')
+        abc_summary = analysis_results.get('abc_fms_summary')
+        
+        # Calculate enhanced metrics
+        enhanced_facts = {
+            "Total dates analyzed": stats.get('unique_dates', 0),
+            "Total SKUs": stats.get('unique_skus', 0),
+            "Total order lines": stats.get('total_order_lines', 0),
+            "Total case equivalents": stats.get('total_case_equivalent', 0),
+            "Date range": "N/A",
+            "Peak vs average ratio": "N/A",
+            "ABC classification breakdown": "N/A"
+        }
+        
+        # Calculate date range
+        if date_summary is not None and not date_summary.empty and 'Date' in date_summary.columns:
+            date_range_start = date_summary['Date'].min().strftime('%Y-%m-%d')
+            date_range_end = date_summary['Date'].max().strftime('%Y-%m-%d')
+            enhanced_facts["Date range"] = f"{date_range_start} to {date_range_end}"
+            
+            # Calculate peak vs average ratio
+            if 'Total_Case_Equiv' in date_summary.columns:
+                peak_volume = date_summary['Total_Case_Equiv'].max()
+                avg_volume = date_summary['Total_Case_Equiv'].mean()
+                if avg_volume > 0:
+                    enhanced_facts["Peak vs average ratio"] = f"{peak_volume/avg_volume:.1f}x"
+        
+        # Calculate ABC breakdown percentages
+        if abc_summary is not None and not abc_summary.empty:
+            if 'ABC' in abc_summary.columns:
+                abc_counts = abc_summary['ABC'].value_counts()
+                total_skus = len(abc_summary)
+                if total_skus > 0:
+                    a_pct = (abc_counts.get('A', 0) / total_skus) * 100
+                    b_pct = (abc_counts.get('B', 0) / total_skus) * 100
+                    c_pct = (abc_counts.get('C', 0) / total_skus) * 100
+                    enhanced_facts["ABC classification breakdown"] = f"A:{a_pct:.0f}%, B:{b_pct:.0f}%, C:{c_pct:.0f}%"
+        
+        # Generate AI-powered executive summary with enhanced data
         try:
-            executive_summary = self.llm_integration.generate_cover_summary(analysis_results)
+            executive_summary = self.llm_integration.generate_cover_summary(analysis_results, enhanced_facts)
             if executive_summary and not executive_summary.startswith("("):
-                self._add_paragraph_with_style(doc, executive_summary)
+                # Split into exactly 2 paragraphs and format
+                paragraphs = [p.strip() for p in executive_summary.split('\n\n') if p.strip()]
+                for i, para in enumerate(paragraphs[:2]):  # Limit to exactly 2 paragraphs
+                    self._add_paragraph_with_style(doc, para)
+                    if i == 0:  # Add spacing between paragraphs
+                        doc.add_paragraph()
             else:
-                # Fallback summary
-                stats = analysis_results.get('order_statistics', {})
-                fallback_summary = f"""This warehouse analysis covers {stats.get('unique_dates', 'N/A')} days of operational data, 
-                analyzing {stats.get('unique_skus', 'N/A')} unique SKUs across {stats.get('total_order_lines', 'N/A')} order lines. 
-                The analysis provides insights into demand patterns, inventory classification, and operational efficiency opportunities."""
-                self._add_paragraph_with_style(doc, fallback_summary)
+                # Fallback summary with specific numbers
+                # Fallback executive summary as bullet points
+                fallback_summary = f"""• **Data Scope**: {enhanced_facts['Total dates analyzed']} days, {enhanced_facts['Total SKUs']:,} SKUs, {enhanced_facts['Total order lines']:,} order lines analyzed
+• **Volume Scale**: {enhanced_facts['Total case equivalents']:,.0f} case equivalents processed from {enhanced_facts['Date range']}
+• **Demand Pattern**: Peak-to-average ratio of {enhanced_facts['Peak vs average ratio']} indicates operational variability
+• **Classification**: ABC distribution shows {enhanced_facts['ABC classification breakdown']} requiring strategic focus"""
+                self._add_ai_insight_section(doc, "Summary", fallback_summary)
         except Exception as e:
             self.logger.error(f"Failed to generate executive summary: {e}")
         
         doc.add_page_break()
     
     def _add_key_findings(self, doc: Document, analysis_results: Dict):
-        """Add key findings section."""
+        """Add key findings section (limited to exactly 1 page)."""
         self._add_heading_with_style(doc, "Key Findings", level=1)
         
-        # Generate AI-powered key findings
+        # Generate AI-powered key findings with enhanced data
         try:
             prompt_config = get_prompt_by_type('word', 'key_findings_summary')
             stats = analysis_results.get('order_statistics', {})
-            sku_stats = analysis_results.get('sku_statistics', {})
+            date_summary = analysis_results.get('date_order_summary')
+            sku_summary = analysis_results.get('sku_order_summary')
+            abc_summary = analysis_results.get('abc_fms_summary')
             
-            facts = {
-                "Analysis period": f"{stats.get('unique_dates', 'N/A')} days",
-                "SKU diversity": f"{stats.get('unique_skus', 'N/A')} unique SKUs",
-                "Order complexity": f"{stats.get('total_order_lines', 'N/A')} order lines",
-                "Volume processed": f"{stats.get('total_case_equivalent', 0):.0f} case equivalents"
+            # Calculate specific metrics for key findings
+            enhanced_facts = {
+                "Analysis period": f"{stats.get('unique_dates', 0)} days",
+                "SKU diversity": f"{stats.get('unique_skus', 0):,} unique SKUs",
+                "Order complexity": f"{stats.get('total_order_lines', 0):,} order lines",
+                "Volume processed": f"{stats.get('total_case_equivalent', 0):,.0f} case equivalents"
             }
+            
+            # Add calculated ratios and percentages
+            if date_summary is not None and not date_summary.empty and 'Total_Case_Equiv' in date_summary.columns:
+                peak_volume = date_summary['Total_Case_Equiv'].max()
+                avg_volume = date_summary['Total_Case_Equiv'].mean()
+                if avg_volume > 0:
+                    enhanced_facts["Peak to average ratio"] = f"{peak_volume/avg_volume:.1f}x"
+                    enhanced_facts["Volume variability"] = f"{(date_summary['Total_Case_Equiv'].std()/avg_volume)*100:.0f}%"
+            
+            # Add Pareto analysis if available
+            if sku_summary is not None and not sku_summary.empty:
+                total_volume = sku_summary['Order_Volume_CE'].sum()
+                cumulative_pct = (sku_summary['Order_Volume_CE'].cumsum() / total_volume) * 100
+                sku_count_80pct = len(cumulative_pct[cumulative_pct <= 80])
+                enhanced_facts["Pareto ratio"] = f"{(sku_count_80pct/len(sku_summary))*100:.0f}% of SKUs drive 80% of volume"
             
             prompt = self.llm_integration.build_prompt(
                 prompt_config['context'], 
-                facts, 
+                enhanced_facts, 
                 prompt_config['instruction']
             )
             
             key_findings = self.llm_integration.call_gemini(prompt)
             if key_findings and not key_findings.startswith("("):
-                self._add_paragraph_with_style(doc, key_findings)
+                # Format as bullet points with bold headers
+                self._add_ai_insight_section(doc, "Summary", key_findings)
             else:
-                # Fallback findings
-                self._add_paragraph_with_style(doc, "Key operational insights have been identified across demand patterns, inventory classification, and resource utilization areas.")
+                # Fallback findings with ultra-concise format
+                fallback_findings = f"""• **Volume Concentration**: {enhanced_facts.get('Pareto ratio', 'N/A')}
+• **Demand Variability**: Peak demand is **{enhanced_facts.get('Peak to average ratio', 'N/A')}** higher than average
+• **Operational Scale**: **{enhanced_facts['Volume processed']}** across **{enhanced_facts['SKU diversity']}**"""
+                self._add_ai_insight_section(doc, "Summary", fallback_findings)
         except Exception as e:
             self.logger.error(f"Failed to generate key findings: {e}")
         
@@ -362,34 +459,36 @@ class WordReportGenerator:
         # Add key findings
         self._add_key_findings(doc, analysis_results)
         
-        # Add daily operations analysis
+        # Add merged daily operations analysis (combines volume and customer patterns)
         self._add_heading_with_style(doc, "Daily Operations Analysis", level=1)
         
-        # Date summary insights
+        # Generate merged date profile summary (combines volume + customer insights)
         try:
-            date_insights = self.llm_integration.generate_date_profile_summary(analysis_results)
-            if date_insights and not date_insights.startswith("("):
-                self._add_ai_insight_section(doc, "Daily Demand Patterns", date_insights)
+            merged_insights = self.llm_integration.generate_date_profile_merged_summary(analysis_results)
+            if merged_insights and not merged_insights.startswith("("):
+                self._add_ai_insight_section(doc, "Daily Demand Patterns (Volume & Customer)", merged_insights)
         except Exception as e:
-            self.logger.error(f"Failed to generate date insights: {e}")
+            self.logger.error(f"Failed to generate merged date insights: {e}")
         
-        # Add date summary table
+        # Add date summary table (limited to top 5 days to save space)
         date_summary = analysis_results.get('date_order_summary')
         if date_summary is not None and not date_summary.empty:
             # Format date column for display
             display_date_summary = date_summary.copy()
             if 'Date' in display_date_summary.columns:
                 display_date_summary['Date'] = display_date_summary['Date'].dt.strftime('%Y-%m-%d')
-            self._add_data_table(doc, "Daily Operations Summary (Top 10 Days by Volume)", 
-                               display_date_summary.nlargest(10, 'Total_Case_Equiv'))
+            self._add_data_table(doc, "Daily Operations Summary (Top 3 Peak Days)", 
+                               display_date_summary.nlargest(3, 'Total_Case_Equiv'), max_rows=3)
         
-        # Add daily volume chart
+        # Add both charts side by side conceptually (but sequentially due to Word limitations)
         date_chart_path = self.charts_dir / 'date_total_case_equiv.png'
+        customer_chart_path = self.charts_dir / 'date_distinct_customers.png'
+        
+        # Add volume chart with compact insights
         if date_chart_path.exists():
             self._add_chart_with_insights(doc, 'date_total_case_equiv', date_chart_path, analysis_results)
         
-        # Add customer chart
-        customer_chart_path = self.charts_dir / 'date_distinct_customers.png'
+        # Add customer chart with compact insights  
         if customer_chart_path.exists():
             self._add_chart_with_insights(doc, 'date_distinct_customers', customer_chart_path, analysis_results)
         
@@ -406,10 +505,12 @@ class WordReportGenerator:
         except Exception as e:
             self.logger.error(f"Failed to generate percentile insights: {e}")
         
-        # Add percentile table
+        # Add percentile table (reduced size)
         percentile_data = analysis_results.get('percentile_profile')
         if percentile_data is not None and not percentile_data.empty:
-            self._add_data_table(doc, "Daily Volume Percentiles", percentile_data)
+            # Show only key percentiles
+            key_percentiles = percentile_data[percentile_data['Percentile'].isin(['50%ile', '75%ile', '95%ile', 'Max'])]
+            self._add_data_table(doc, "Key Volume Percentiles", key_percentiles, max_rows=4)
         
         # Add percentile chart
         percentile_chart_path = self.charts_dir / 'percentile_total_case_equiv.png'
@@ -418,10 +519,10 @@ class WordReportGenerator:
         
         doc.add_page_break()
         
-        # Add SKU analysis section
+        # Add SKU analysis section (limited to 2-3 pages max)
         self._add_heading_with_style(doc, "SKU Distribution Analysis", level=1)
         
-        # SKU insights
+        # SKU insights (concise format)
         try:
             sku_insights = self.llm_integration.generate_sku_profile_summary(analysis_results)
             if sku_insights and not sku_insights.startswith("("):
@@ -429,12 +530,12 @@ class WordReportGenerator:
         except Exception as e:
             self.logger.error(f"Failed to generate SKU insights: {e}")
         
-        # Add SKU summary table
+        # Add SKU summary table (reduced to top 3 to save space)
         sku_summary = analysis_results.get('sku_order_summary')
         if sku_summary is not None and not sku_summary.empty:
-            self._add_data_table(doc, "Top SKUs by Volume", sku_summary.head(15))
+            self._add_data_table(doc, "Top SKUs by Volume", sku_summary.head(3), max_rows=3)
         
-        # Add SKU Pareto chart
+        # Add SKU Pareto chart with concise insights
         sku_pareto_path = self.charts_dir / 'sku_pareto.png'
         if sku_pareto_path.exists():
             self._add_chart_with_insights(doc, 'sku_pareto', sku_pareto_path, analysis_results)
@@ -452,10 +553,12 @@ class WordReportGenerator:
         except Exception as e:
             self.logger.error(f"Failed to generate ABC-FMS insights: {e}")
         
-        # Add ABC-FMS summary table
+        # Add ABC-FMS summary table (reduced size)
         abc_fms_summary = analysis_results.get('abc_fms_summary')
         if abc_fms_summary is not None and not abc_fms_summary.empty:
-            self._add_data_table(doc, "ABC-FMS Classification Summary", abc_fms_summary)
+            # Show only key combinations
+            key_combinations = abc_fms_summary.head(3)
+            self._add_data_table(doc, "Key ABC-FMS Classifications", key_combinations, max_rows=3)
         
         # Add ABC volume chart
         abc_volume_path = self.charts_dir / 'abc_volume_stacked.png'
@@ -490,8 +593,11 @@ class WordReportGenerator:
             if recommendations and not recommendations.startswith("("):
                 self._add_paragraph_with_style(doc, recommendations)
             else:
-                # Fallback recommendations
-                self._add_paragraph_with_style(doc, "Strategic recommendations have been developed based on the analysis findings to optimize warehouse operations and improve efficiency.")
+                # Fallback recommendations as bullets
+                fallback_recommendations = """• **Immediate**: Focus on top **20%** of SKUs driving **80%** of volume for optimization
+• **Medium-term**: Implement **6-month** capacity planning based on **95th percentile** requirements  
+• **Strategic**: Develop ABC-based slotting strategy for **long-term** operational efficiency"""
+                self._add_ai_insight_section(doc, "Action Plan", fallback_recommendations)
         except Exception as e:
             self.logger.error(f"Failed to generate recommendations: {e}")
         

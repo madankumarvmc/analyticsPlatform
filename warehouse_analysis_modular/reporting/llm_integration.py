@@ -209,27 +209,30 @@ class LLMIntegration:
             self.logger.warning(f"Failed to extract text from response: {e}")
             return ""
     
-    def generate_cover_summary(self, analysis_results: Dict) -> str:
+    def generate_cover_summary(self, analysis_results: Dict, enhanced_facts: Dict = None) -> str:
         """
-        Generate executive summary for the cover section.
+        Generate executive summary for the cover section with enhanced data.
         
         Args:
             analysis_results: Dictionary containing analysis results
+            enhanced_facts: Optional dictionary with pre-calculated enhanced facts
             
         Returns:
             Generated summary text
         """
-        # Extract key facts for cover summary
-        stats = analysis_results.get('order_statistics', {})
-        sku_stats = analysis_results.get('sku_statistics', {})
-        
-        facts = {
-            "Generated on": datetime.now().isoformat(),
-            "Total dates analyzed": stats.get('unique_dates', 'N/A'),
-            "Unique SKUs": stats.get('unique_skus', 'N/A'),
-            "Total order lines": stats.get('total_order_lines', 'N/A'),
-            "Total case equivalent": f"{stats.get('total_case_equivalent', 0):.0f}"
-        }
+        if enhanced_facts:
+            # Use enhanced facts provided by the caller
+            facts = enhanced_facts
+        else:
+            # Extract key facts for cover summary (fallback)
+            stats = analysis_results.get('order_statistics', {})
+            facts = {
+                "Generated on": datetime.now().isoformat(),
+                "Total dates analyzed": stats.get('unique_dates', 'N/A'),
+                "Unique SKUs": stats.get('unique_skus', 'N/A'),
+                "Total order lines": stats.get('total_order_lines', 'N/A'),
+                "Total case equivalent": f"{stats.get('total_case_equivalent', 0):.0f}"
+            }
         
         prompt = self.build_prompt("Cover", facts)
         return self.call_gemini(prompt)
@@ -268,7 +271,7 @@ class LLMIntegration:
     
     def generate_percentile_summary(self, analysis_results: Dict) -> str:
         """
-        Generate summary for percentile analysis.
+        Generate summary for percentile analysis with enhanced calculations.
         
         Args:
             analysis_results: Dictionary containing analysis results
@@ -276,21 +279,49 @@ class LLMIntegration:
         Returns:
             Generated summary text
         """
+        from .prompts_config import get_prompt_by_type
+        
         percentile_profile = analysis_results.get('percentile_profile')
         
         if percentile_profile is None or percentile_profile.empty:
             return "(No percentile data available)"
         
-        # Extract percentile facts
+        # Enhanced percentile calculations
         pct_data = percentile_profile.set_index('Percentile')['Total_Case_Equiv']
-        facts = {row: f"{pct_data[row]:.0f}" for row in pct_data.index}
         
-        prompt = self.build_prompt("Percentiles", facts)
+        # Calculate key ratios and differences
+        p95 = pct_data.get('95%ile', 0)
+        p50 = pct_data.get('50%ile', 0) 
+        p75 = pct_data.get('75%ile', 0)
+        max_val = pct_data.get('Max', 0)
+        
+        # Capacity planning insights
+        capacity_spread_ratio = p95 / p50 if p50 > 0 else 0
+        peak_buffer = ((max_val - p95) / p95) * 100 if p95 > 0 else 0
+        operational_range = p75 - p50
+        
+        facts = {
+            "50th percentile": f"{p50:.0f}",
+            "75th percentile": f"{p75:.0f}",
+            "95th percentile": f"{p95:.0f}",
+            "Maximum value": f"{max_val:.0f}",
+            "Capacity spread ratio": f"{capacity_spread_ratio:.1f}x",
+            "Peak buffer above 95th": f"{peak_buffer:.0f}%",
+            "Operational range (75th-50th)": f"{operational_range:.0f}",
+            "Planning threshold": f"95th percentile ({p95:.0f}) recommended for infrastructure sizing"
+        }
+        
+        prompt_config = get_prompt_by_type('section', 'percentiles')
+        prompt = self.build_prompt(
+            prompt_config['context'], 
+            facts, 
+            prompt_config['instruction']
+        )
         return self.call_gemini(prompt)
     
     def generate_sku_profile_summary(self, analysis_results: Dict) -> str:
         """
-        Generate summary for SKU profile analysis.
+        Generate summary for SKU profile analysis with enhanced calculations.
         
         Args:
             analysis_results: Dictionary containing analysis results
@@ -298,6 +329,8 @@ class LLMIntegration:
         Returns:
             Generated summary text
         """
+        from .prompts_config import get_prompt_by_type
+        
         sku_summary = analysis_results.get('sku_order_summary')
         sku_profile = analysis_results.get('sku_profile_abc_fms')
         
@@ -317,23 +350,103 @@ class LLMIntegration:
         if volume_col is None:
             return "(No volume column found in SKU data)"
         
-        # Get top SKUs
-        top_skus = data_source.nlargest(5, volume_col)
+        # Enhanced calculations
+        total_skus = len(data_source)
+        total_volume = data_source[volume_col].sum()
+        
+        # Calculate Pareto analysis (80/20 rule)
+        sorted_data = data_source.sort_values(volume_col, ascending=False)
+        cumulative_volume = sorted_data[volume_col].cumsum()
+        pareto_80_threshold = total_volume * 0.8
+        
+        skus_for_80_percent = len(cumulative_volume[cumulative_volume <= pareto_80_threshold])
+        pareto_percentage = (skus_for_80_percent / total_skus) * 100
+        
+        # Top concentration analysis
+        top_10_pct_count = max(1, int(total_skus * 0.1))
+        top_10_pct_volume = sorted_data.head(top_10_pct_count)[volume_col].sum()
+        top_concentration_pct = (top_10_pct_volume / total_volume) * 100
+        
+        # Volume distribution insights
+        avg_sku_volume = total_volume / total_skus
+        top_sku_volume = sorted_data.iloc[0][volume_col]
+        volume_concentration_ratio = top_sku_volume / avg_sku_volume
         
         facts = {
-            "Total SKUs analyzed": len(data_source),
-            "Top 5 SKUs by volume": "; ".join([
-                f"{row['Sku Code']}:{row[volume_col]:.0f}" 
-                for _, row in top_skus.iterrows()
-            ])
+            "Total SKUs analyzed": f"{total_skus:,}",
+            "Total volume processed": f"{total_volume:,.0f}",
+            "Pareto analysis": f"{pareto_percentage:.0f}% of SKUs contribute to 80% of volume",
+            "Top 10% concentration": f"Top 10% of SKUs control {top_concentration_pct:.0f}% of volume",
+            "Volume concentration ratio": f"{volume_concentration_ratio:.1f}x",
+            "Average SKU volume": f"{avg_sku_volume:.0f}",
+            "Top SKU volume": f"{top_sku_volume:.0f}"
         }
         
-        prompt = self.build_prompt("SKU Profile", facts)
+        prompt_config = get_prompt_by_type('section', 'sku_profile')
+        prompt = self.build_prompt(
+            prompt_config['context'], 
+            facts, 
+            prompt_config['instruction']
+        )
+        return self.call_gemini(prompt)
+    
+    def generate_date_profile_merged_summary(self, analysis_results: Dict) -> str:
+        """
+        Generate merged summary for date profile analysis (combines volume and customer patterns).
+        
+        Args:
+            analysis_results: Dictionary containing analysis results
+            
+        Returns:
+            Generated summary text using the new merged prompt
+        """
+        from .prompts_config import get_prompt_by_type
+        
+        date_summary = analysis_results.get('date_order_summary')
+        
+        if date_summary is None or date_summary.empty:
+            return "(No date summary data available)"
+        
+        # Build enhanced facts for merged analysis
+        facts = {}
+        
+        # Volume analysis
+        if 'Total_Case_Equiv' in date_summary.columns:
+            peak_volume = date_summary['Total_Case_Equiv'].max()
+            avg_volume = date_summary['Total_Case_Equiv'].mean()
+            facts.update({
+                "Peak daily volume": f"{peak_volume:.0f}",
+                "Average daily volume": f"{avg_volume:.0f}",
+                "Peak vs average ratio": f"{peak_volume/avg_volume:.1f}x" if avg_volume > 0 else "N/A",
+                "Volume variability": f"{(date_summary['Total_Case_Equiv'].std()/avg_volume)*100:.0f}%" if avg_volume > 0 else "N/A"
+            })
+        
+        # Customer analysis
+        if 'Distinct_Customers' in date_summary.columns:
+            peak_customers = date_summary['Distinct_Customers'].max()
+            avg_customers = date_summary['Distinct_Customers'].mean()
+            facts.update({
+                "Peak daily customers": f"{peak_customers:.0f}",
+                "Average daily customers": f"{avg_customers:.0f}",
+                "Customer peak ratio": f"{peak_customers/avg_customers:.1f}x" if avg_customers > 0 else "N/A"
+            })
+        
+        # Date range
+        facts["Analysis period"] = f"{date_summary['Date'].min().date()} to {date_summary['Date'].max().date()}"
+        facts["Total analysis days"] = len(date_summary)
+        
+        # Use the new merged prompt
+        prompt_config = get_prompt_by_type('section', 'date_profile_merged')
+        prompt = self.build_prompt(
+            prompt_config['context'], 
+            facts, 
+            prompt_config['instruction']
+        )
         return self.call_gemini(prompt)
     
     def generate_abc_fms_summary(self, analysis_results: Dict) -> str:
         """
-        Generate summary for ABC-FMS analysis.
+        Generate summary for ABC-FMS analysis with enhanced calculations.
         
         Args:
             analysis_results: Dictionary containing analysis results
@@ -341,22 +454,62 @@ class LLMIntegration:
         Returns:
             Generated summary text
         """
+        from .prompts_config import get_prompt_by_type
+        
         abc_fms_summary = analysis_results.get('abc_fms_summary')
         cross_tab_insights = analysis_results.get('cross_tabulation_insights', {})
         
         if abc_fms_summary is None or abc_fms_summary.empty:
             return "(No ABC-FMS summary data available)"
         
-        # Get sample rows (exclude grand total)
-        sample_data = abc_fms_summary[abc_fms_summary['ABC'] != 'Grand Total'].head(3)
+        # Enhanced ABC distribution calculations
+        abc_data = abc_fms_summary[abc_fms_summary['ABC'] != 'Grand Total']
+        
+        if 'ABC' in abc_data.columns:
+            abc_counts = abc_data['ABC'].value_counts()
+            total_items = len(abc_data)
+            
+            abc_distribution = {
+                'A_percentage': f"{(abc_counts.get('A', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%",
+                'B_percentage': f"{(abc_counts.get('B', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%",
+                'C_percentage': f"{(abc_counts.get('C', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%"
+            }
+        else:
+            abc_distribution = {'A_percentage': 'N/A', 'B_percentage': 'N/A', 'C_percentage': 'N/A'}
+        
+        # FMS distribution calculations
+        if 'FMS' in abc_data.columns:
+            fms_counts = abc_data['FMS'].value_counts()
+            fms_distribution = {
+                'Fast_percentage': f"{(fms_counts.get('Fast', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%",
+                'Medium_percentage': f"{(fms_counts.get('Medium', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%",
+                'Slow_percentage': f"{(fms_counts.get('Slow', 0) / total_items) * 100:.0f}%" if total_items > 0 else "0%"
+            }
+        else:
+            fms_distribution = {'Fast_percentage': 'N/A', 'Medium_percentage': 'N/A', 'Slow_percentage': 'N/A'}
+        
+        # Dominant classification insight
+        dominant_abc = abc_counts.idxmax() if not abc_counts.empty else 'N/A'
+        dominant_fms = fms_counts.idxmax() if 'FMS' in abc_data.columns and not fms_counts.empty else 'N/A'
         
         facts = {
-            "ABC distribution": json.dumps(cross_tab_insights.get('distribution_summary', {}).get('abc_volume_distribution', {})),
-            "Dominant volume category": cross_tab_insights.get('dominant_categories', {}).get('highest_volume_category', 'N/A'),
-            "Sample cross-tab data": sample_data.to_dict('records')[:2]  # Limit to first 2 rows
+            "ABC distribution - A class": abc_distribution['A_percentage'],
+            "ABC distribution - B class": abc_distribution['B_percentage'], 
+            "ABC distribution - C class": abc_distribution['C_percentage'],
+            "FMS distribution - Fast": fms_distribution['Fast_percentage'],
+            "FMS distribution - Medium": fms_distribution['Medium_percentage'],
+            "FMS distribution - Slow": fms_distribution['Slow_percentage'],
+            "Dominant ABC class": dominant_abc,
+            "Dominant FMS class": dominant_fms,
+            "Total classified items": f"{total_items:,}"
         }
         
-        prompt = self.build_prompt("ABC-FMS", facts)
+        prompt_config = get_prompt_by_type('section', 'abc_fms')
+        prompt = self.build_prompt(
+            prompt_config['context'], 
+            facts, 
+            prompt_config['instruction']
+        )
         return self.call_gemini(prompt)
     
     def generate_all_summaries(self, analysis_results: Dict) -> Dict[str, str]:
@@ -374,6 +527,7 @@ class LLMIntegration:
         summaries = {
             'cover': self.generate_cover_summary(analysis_results),
             'date_profile': self.generate_date_profile_summary(analysis_results),
+            'date_profile_merged': self.generate_date_profile_merged_summary(analysis_results),
             'percentiles': self.generate_percentile_summary(analysis_results),
             'sku_profile': self.generate_sku_profile_summary(analysis_results),
             'abc_fms': self.generate_abc_fms_summary(analysis_results)

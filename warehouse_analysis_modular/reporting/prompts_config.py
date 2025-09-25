@@ -13,12 +13,14 @@ for different sections and charts in warehouse analysis reports.
 
 EXECUTIVE_SUMMARY_PROMPTS = {
     'cover': {
-        'instruction': '''Produce a professional 3-sentence executive summary that highlights:
-        1. Dataset scope and time period analyzed
-        2. Key operational metrics and performance indicators
-        3. Top-level strategic implications for warehouse management
+        'instruction': '''Create exactly 4 bullet points using the actual data provided in facts:
         
-        Focus on business value and actionable insights suitable for executive leadership.''',
+        • **Data Scope**: Use actual numbers for dates, SKUs, order lines, case equivalents
+        • **Operational Scale**: Use real date range and volume from data with calculated metrics
+        • **Demand Pattern**: Use calculated peak vs average ratio and variability percentage from data
+        • **Classification**: Use actual ABC distribution percentages from analysis
+        
+        Use only real numbers from the provided facts. Bold all actual percentages, ratios, and metrics. No placeholders.''',
         'context': 'Executive Summary for Management Report'
     }
 }
@@ -28,49 +30,47 @@ EXECUTIVE_SUMMARY_PROMPTS = {
 # =============================================================================
 
 SECTION_ANALYSIS_PROMPTS = {
-    'date_profile': {
-        'instruction': '''Analyze the daily demand patterns and provide:
-        1. A 3-sentence description of demand variability and trends
-        2. Peak demand periods and their operational impact
-        3. Three specific operational recommendations for:
-           - Workforce staffing optimization
-           - Pallet allocation strategies
-           - Inventory buffer planning
+    'date_profile_merged': {
+        'instruction': '''Provide exactly 3 bullets using actual data from facts:
         
-        Frame recommendations in terms of cost reduction and efficiency gains.''',
+        • **Volume Pattern**: Use calculated peak vs average ratio and variability percentage from data
+        • **Customer Pattern**: Use actual customer count correlation data and peak ratios
+        • **Operational Impact**: Key insight about demand concentration using real numbers
+        
+        Use only actual numbers from provided facts. Bold all real ratios and percentages. No placeholders.''',
         'context': 'Daily Operations Analysis'
     },
     
     'percentiles': {
-        'instruction': '''Interpret these daily volume percentiles for capacity planning:
-        1. Explain what each percentile means for operational planning
-        2. Identify capacity utilization patterns and stress points
-        3. Recommend infrastructure and resource provisioning strategies
+        'instruction': '''Provide exactly 3 bullets using actual percentile data from facts:
         
-        Focus on scalability and peak demand preparedness.''',
+        • **Capacity Spread**: Use calculated 95th to 50th percentile ratio from real data
+        • **Peak Planning**: Use actual percentile values for infrastructure sizing recommendations
+        • **Operational Buffer**: Insight about capacity buffer using real percentile differences
+        
+        Use only actual percentile numbers from provided facts. Bold all real percentages and values. No placeholders.''',
         'context': 'Capacity Planning Analysis'
     },
     
     'sku_profile': {
-        'instruction': '''Analyze the SKU distribution and Pareto characteristics:
-        1. Summarize the volume concentration among SKUs (3 sentences)
-        2. Identify inventory management implications
-        3. Provide one specific slotting optimization recommendation
+        'instruction': '''Provide exactly 3 bullets using actual SKU data from facts:
         
-        Emphasize inventory efficiency and picking optimization.''',
+        • **Pareto Analysis**: Use calculated percentage of SKUs that contribute to 80% of volume from data
+        • **Top Concentration**: Use actual top SKU percentages and their volume contribution from analysis
+        • **Distribution Pattern**: Key insight about SKU velocity using real distribution data
+        
+        Use only actual numbers from provided facts. Bold all real percentages and SKU counts. No placeholders.''',
         'context': 'SKU Distribution Analysis'
     },
     
     'abc_fms': {
-        'instruction': '''Analyze the ABC-FMS classification distribution:
-        1. Interpret the volume and frequency distribution patterns
-        2. Assess current inventory classification effectiveness
-        3. Provide 3 prioritized recommendations for:
-           - Optimal slotting strategies
-           - Replenishment frequency optimization
-           - Resource allocation improvements
+        'instruction': '''Provide exactly 3 bullets using actual ABC-FMS data from facts:
         
-        Focus on operational efficiency and cost optimization.''',
+        • **ABC Distribution**: Use calculated A/B/C percentages by volume contribution from data
+        • **Movement Patterns**: Use actual Fast/Medium/Slow percentages from analysis
+        • **Classification Insight**: Key observation about effectiveness using real distribution data
+        
+        Use only actual percentages from provided facts. Bold all real classification percentages. No placeholders.''',
         'context': 'ABC-FMS Classification Analysis'
     },
     
@@ -94,62 +94,62 @@ SECTION_ANALYSIS_PROMPTS = {
 
 CHART_INSIGHT_PROMPTS = {
     'date_total_case_equiv': {
-        'instruction': '''Analyze this daily volume trend chart and provide:
-        1. Two key observations about demand patterns
-        2. One operational insight about volume variability
-        3. One recommendation for capacity planning
+        'instruction': '''Provide exactly 2 bullets using actual chart data from facts:
         
-        Keep insights concise and actionable.''',
+        • **Volume Trend**: Use calculated peak-to-average ratio and trend patterns from real data
+        • **Operational Impact**: Key insight about volume variability using actual numbers
+        
+        Use only actual data from provided facts. Bold all real ratios and metrics. No placeholders.''',
         'context': 'Daily Volume Trend Analysis'
     },
     
     'date_distinct_customers': {
-        'instruction': '''Analyze this daily customer count chart and provide:
-        1. Customer demand pattern insights
-        2. Correlation between customer count and operational complexity
-        3. One recommendation for customer service optimization
+        'instruction': '''Provide exactly 2 bullets using actual customer data from facts:
         
-        Focus on service level and operational efficiency.''',
+        • **Customer Pattern**: Use calculated peak customer ratios and patterns from real data
+        • **Service Impact**: Operational complexity insight using actual customer metrics
+        
+        Use only actual data from provided facts. Bold all real ratios and customer metrics. No placeholders.''',
         'context': 'Customer Demand Pattern Analysis'
     },
     
     'percentile_total_case_equiv': {
-        'instruction': '''Analyze this percentile distribution chart and provide:
-        1. Capacity planning insights from the percentile spread
-        2. Risk assessment for peak demand scenarios
-        3. One infrastructure recommendation based on the distribution
+        'instruction': '''Provide exactly 2 bullets using actual percentile data from facts:
         
-        Emphasize planning for operational resilience.''',
+        • **Capacity Spread**: Use real 95th/50th percentile values and calculated ratios from data
+        • **Planning Insight**: Infrastructure recommendation using actual percentile differences
+        
+        Use only actual percentile values from provided facts. Bold all real percentiles and ratios. No placeholders.''',
         'context': 'Percentile Distribution Analysis'
     },
     
     'sku_pareto': {
-        'instruction': '''Analyze this SKU Pareto chart and provide:
-        1. Concentration ratio insights (80/20 principle application)
-        2. Inventory management implications
-        3. One specific recommendation for high-volume SKU handling
+        'instruction': '''Provide exactly 2 bullets using actual Pareto data from facts:
         
-        Focus on inventory efficiency and picking optimization.''',
+        • **80/20 Analysis**: Use calculated percentage of SKUs that drive 80% of volume from real data
+        • **Concentration Impact**: Inventory management insight using actual concentration ratios
+        
+        Use only actual percentages from provided facts. Bold all real Pareto percentages. No placeholders.''',
         'context': 'SKU Pareto Analysis'
     },
     
     'abc_volume_stacked': {
-        'instruction': '''Analyze this ABC volume distribution chart and provide:
-        1. Volume concentration insights across ABC classes
-        2. Inventory investment allocation observations
-        3. One recommendation for ABC classification optimization
+        'instruction': '''Provide exactly 2 bullets using actual ABC data from facts:
         
-        Emphasize inventory cost management.''',
+        • **ABC Distribution**: Use calculated A/B/C class percentages by volume from real data
+        • **Investment Impact**: Resource allocation insight using actual volume distribution
+        
+        Use only actual percentages from provided facts. Bold all real ABC percentages. No placeholders.''',
         'context': 'ABC Volume Distribution Analysis'
     },
     
     'abc_fms_heatmap': {
-        'instruction': '''Analyze this ABC-FMS heatmap and provide:
-        1. Cross-classification pattern insights
-        2. Slotting strategy implications from the distribution
-        3. One specific recommendation for warehouse layout optimization
+        'instruction': '''Provide exactly 2 bullets using actual ABC-FMS data from facts:
         
-        Focus on picking efficiency and storage optimization.''',
+        • **Matrix Pattern**: Use actual dominant classification patterns and percentages from data
+        • **Slotting Strategy**: Warehouse layout insight using real classification distribution
+        
+        Use only actual classification data from provided facts. Bold all real percentages and patterns. No placeholders.''',
         'context': 'ABC-FMS Cross-Classification Analysis'
     }
 }
@@ -170,22 +170,25 @@ WORD_DOCUMENT_PROMPTS = {
     },
     
     'key_findings_summary': {
-        'instruction': '''Summarize the top 5 key findings from the warehouse analysis:
-        1. Most critical operational insights
-        2. Biggest opportunities for improvement
-        3. Highest-impact recommendations
+        'instruction': '''Create exactly 4 bullet points using actual analysis data from facts:
         
-        Present as numbered list with business impact focus.''',
+        • **Volume Concentration**: Use calculated Pareto ratios and percentages from real data
+        • **Demand Variability**: Use actual peak vs average ratios and operational impact from data
+        • **Classification Patterns**: Use real ABC/FMS distribution percentages and insights
+        • **Operational Scale**: Use actual volume and complexity metrics from analysis
+        
+        Use only real numbers from provided facts. Bold all actual percentages, ratios, and metrics. No placeholders.''',
         'context': 'Key Findings Summary'
     },
     
     'recommendations_summary': {
-        'instruction': '''Create a consolidated action plan with:
-        1. Top 3 immediate actions (0-30 days)
-        2. Top 3 medium-term initiatives (1-6 months)
-        3. Long-term strategic improvements (6+ months)
+        'instruction': '''Create exactly 3 bullet points for action items using analysis insights:
         
-        Include expected business impact and implementation complexity for each.''',
+        • **Immediate (30 days)**: Most critical action based on actual data findings with quantified impact
+        • **Medium-term (6 months)**: Key initiative based on real analysis patterns with measurable benefit
+        • **Strategic (12+ months)**: Long-term optimization using actual data insights with ROI potential
+        
+        Base recommendations on actual analysis findings. Bold timeframes and quantified benefits.''',
         'context': 'Consolidated Recommendations'
     }
 }
