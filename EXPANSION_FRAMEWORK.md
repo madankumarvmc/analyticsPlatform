@@ -10,6 +10,7 @@
 7. [Testing & Validation](#testing--validation)
 8. [Advanced Features](#advanced-features)
 9. [Maintenance & Scaling](#maintenance--scaling)
+10. [Critical Pipeline Fixes](#critical-pipeline-fixes)
 
 ---
 
@@ -501,6 +502,275 @@ git commit -m "Add [YourAnalysis]: Chart generation and embedding"
 
 ---
 
+## Chart Enhancement Framework
+
+### Adding New Charts to Reports
+
+This section provides a complete guide for adding new chart visualizations to the warehouse analysis system, ensuring they appear correctly in both Excel and Word reports.
+
+#### Chart Enhancement Process Flow
+
+```
+1. Create Chart Generation Method
+   ↓
+2. Register Chart in Advanced Chart Generator
+   ↓
+3. Add Excel Data Integration 
+   ↓
+4. Add Word Report Embedding
+   ↓
+5. Add AI Insights for Chart
+   ↓ 
+6. Test Complete Integration
+```
+
+#### Step-by-Step Chart Enhancement Guide
+
+### **Step 1: Create Chart Generation Method**
+
+**Location**: `warehouse_analysis_modular/reporting/advanced_chart_generator.py`
+
+**Template Code:**
+```python
+def create_your_chart_name(self, analysis_data: Dict) -> str:
+    """
+    Create your custom chart visualization.
+    
+    Args:
+        analysis_data: Dictionary containing analysis results
+        
+    Returns:
+        Path to saved chart file
+    """
+    self.logger.info("Creating your chart visualization")
+    
+    # Extract and validate data
+    chart_data = analysis_data.get('your_data_key')
+    if chart_data is None or chart_data.empty:
+        self.logger.warning("❌ No data available for your chart")
+        return ""
+    
+    # Debug information about the data received
+    self.logger.info(f"📊 Creating chart with data shape: {chart_data.shape}")
+    self.logger.info(f"📊 Available columns: {list(chart_data.columns)}")
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=(14, 8))
+    
+    # Your chart creation logic here
+    # Example: Multi-line chart
+    for column in ['metric1', 'metric2', 'metric3']:
+        if column in chart_data.columns:
+            ax.plot(chart_data.index, chart_data[column], 
+                   label=column, linewidth=2, marker='o')
+    
+    # Styling
+    ax.set_title('Your Chart Title', fontsize=14, fontweight='bold')
+    ax.set_xlabel('X-Axis Label')
+    ax.set_ylabel('Y-Axis Label')
+    ax.legend(loc='upper right')
+    ax.grid(True, alpha=0.3)
+    
+    # Add summary table (optional)
+    if chart_data is not None:
+        summary_data = [
+            ['Max Value', f"{chart_data.max().max():.0f}"],
+            ['Avg Value', f"{chart_data.mean().mean():.0f}"],
+            ['Data Points', f"{len(chart_data)}"]
+        ]
+        
+        table = ax.table(cellText=summary_data,
+                        colLabels=['Metric', 'Value'],
+                        cellLoc='center',
+                        loc='lower right',
+                        bbox=[0.7, 0.02, 0.28, 0.3])
+        table.auto_set_font_size(False)
+        table.set_fontsize(9)
+    
+    plt.tight_layout()
+    
+    # Save chart
+    filename = "your_chart_filename.png"
+    filepath = self.charts_dir / filename
+    plt.savefig(filepath, dpi=self.dpi, bbox_inches='tight', facecolor='white')
+    plt.close()
+    
+    self.logger.info(f"Your chart saved: {filename}")
+    return str(filepath)
+```
+
+### **Step 2: Register Chart in Advanced Chart Generator**
+
+**Location**: `warehouse_analysis_modular/enhanced_main.py`
+
+**Method**: `_generate_advanced_charts()`
+
+**Add to existing method:**
+```python
+# Your New Chart Generation
+if 'your_data_key' in basic_results or 'your_data_key' in advanced_results:
+    self.logger.info("Generating your custom chart")
+    combined_data = {**basic_results, **advanced_results}
+    chart_path = self.advanced_chart_generator.create_your_chart_name(combined_data)
+    if chart_path:
+        chart_paths['your_chart_key'] = chart_path
+        self.logger.info(f"✅ Your chart saved to: {chart_path}")
+    else:
+        self.logger.warning("❌ Your chart generation returned empty path")
+```
+
+### **Step 3: Add Excel Data Integration**
+
+**Location**: `warehouse_analysis_modular/reporting/excel_exporter.py`
+
+**Method**: `_process_advanced_analysis()`
+
+**Add to existing method (before the final closing):**
+```python
+# Process Your Chart Data (following expansion framework)
+if 'chart_paths' in analysis_results:
+    chart_paths = analysis_results['chart_paths']
+    
+    # Your Chart Data Integration
+    if 'your_chart_key' in chart_paths:
+        # Extract source data for Excel worksheet
+        if 'your_data_key' in analysis_results:
+            chart_source_data = analysis_results['your_data_key']
+            if not chart_source_data.empty:
+                # Add metadata for Excel
+                excel_data = chart_source_data.copy()
+                excel_data['Chart_Type'] = 'Your Chart Name'
+                excel_data['Generated_Chart_Path'] = chart_paths['your_chart_key']
+                export_data['Your Chart Data'] = excel_data
+```
+
+### **Step 4: Add Word Report Embedding**
+
+**Location**: `warehouse_analysis_modular/reporting/word_report.py`
+
+**Method**: `_add_advanced_analysis_sections()` or appropriate section method
+
+**Template Code:**
+```python
+# Add Your Chart to Word Report
+your_chart_path = self.charts_dir / 'your_chart_filename.png'
+
+# Enhanced debugging for chart paths
+self.logger.info(f"Looking for your chart at: {your_chart_path}")
+
+if your_chart_path.exists():
+    file_size = your_chart_path.stat().st_size
+    self.logger.info(f"✅ Found your chart: {your_chart_path} (size: {file_size} bytes)")
+    self._add_chart_with_insights(doc, 'your_chart_key', your_chart_path, analysis_results)
+else:
+    self.logger.warning(f"❌ Your chart not found: {your_chart_path}")
+    # Add placeholder text in Word report
+    placeholder = doc.add_paragraph("📊 Your Chart Title")
+    placeholder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    placeholder.style = 'Intense Quote'
+    note = doc.add_paragraph("Note: Chart is being generated and will be available in future reports.")
+    note.style = 'Caption'
+```
+
+### **Step 5: Add AI Insights for Chart**
+
+**Location**: `warehouse_analysis_modular/reporting/prompts_config.py`
+
+**Add to CHART_INSIGHT_PROMPTS:**
+```python
+'your_chart_key': {
+    'instruction': '''Provide exactly 3 bullets using actual chart data from facts:
+    
+    • **Primary Pattern**: Use calculated key metrics and trends from real data
+    • **Secondary Insight**: Analyze relationships and correlations using actual numbers
+    • **Operational Impact**: Key insight about business implications using real metrics
+    
+    Use only actual data from provided facts. Bold all real ratios and metrics. No placeholders.''',
+    'context': 'Your Chart Analysis Context'
+}
+```
+
+### **Step 6: Testing & Validation**
+
+**Complete Integration Checklist:**
+
+- [ ] **Chart Generation**: Chart method creates valid PNG file
+- [ ] **Enhanced Main**: Chart registered in `_generate_advanced_charts()`
+- [ ] **Excel Integration**: Chart data appears in Excel worksheet
+- [ ] **Word Embedding**: Chart appears in Word report
+- [ ] **AI Insights**: LLM generates meaningful insights for chart
+- [ ] **Error Handling**: Graceful fallbacks when chart generation fails
+- [ ] **File Paths**: Chart files are found by Word report
+- [ ] **Performance**: Chart generation completes within reasonable time
+
+**Debugging Commands:**
+```bash
+# Test chart generation
+python -c "
+from warehouse_analysis_modular.reporting.advanced_chart_generator import AdvancedChartGenerator
+generator = AdvancedChartGenerator()
+# Test your chart method
+"
+
+# Test full pipeline
+python -c "
+from warehouse_analysis_modular.enhanced_main import EnhancedWarehouseAnalysisPipeline
+pipeline = EnhancedWarehouseAnalysisPipeline(generate_advanced_charts=True)
+results = pipeline.run_full_analysis()
+print('Chart paths:', results.get('advanced_chart_paths', {}))
+"
+
+# Check generated files
+ls -la report/charts/your_chart_filename.png
+```
+
+### **Common Issues & Solutions**
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Chart not in Word report | File path mismatch | Ensure chart filename matches exactly |
+| Chart generation fails | Missing data validation | Add proper data checks in chart method |
+| Excel worksheet empty | Chart data not passed | Verify chart_paths in analysis_results |
+| AI insights missing | Prompt not configured | Add prompt to prompts_config.py |
+| Chart files missing | Generation timing | Ensure charts generated before Word report |
+
+### **Performance Best Practices**
+
+1. **Efficient Data Processing**: Use pandas operations instead of loops
+2. **Memory Management**: Close matplotlib figures with `plt.close()`
+3. **File Size Optimization**: Use appropriate DPI settings (300 for print, 150 for web)
+4. **Error Isolation**: Each chart should fail independently
+5. **Caching**: Cache expensive data transformations
+
+### **Chart Styling Guidelines**
+
+```python
+# Standard chart styling for consistency
+plt.style.use('default')  # or your preferred style
+
+# Color palette (use consistently)
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+
+# Font settings
+plt.rcParams.update({
+    'font.size': 10,
+    'axes.titlesize': 14,
+    'axes.labelsize': 12,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10
+})
+
+# Grid settings
+ax.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+
+# Professional styling
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+```
+
+---
+
 ## Examples & References
 
 ### Successful Implementation Examples
@@ -563,6 +833,172 @@ python -c "import pandas as pd; print(pd.ExcelFile('Order_Profiles.xlsx').sheet_
 2. **Test Incrementally**: Test each integration step independently  
 3. **Use Templates**: Follow existing successful implementations
 4. **Validate Data**: Ensure your analysis returns expected data structures
+
+---
+
+## Critical Pipeline Fixes
+
+### 🚨 Essential Pre-Checklist for All Enhancements
+
+**Before implementing ANY new charts, analyzers, or enhancements, run this checklist to avoid pipeline failures:**
+
+#### ✅ Naming Conflict Prevention
+1. **Never use method names as attribute names** 
+   - ❌ **WRONG**: `self.generate_advanced_charts = True` (conflicts with method)
+   - ✅ **CORRECT**: `self.enable_advanced_charts = True`
+
+2. **Method Name Verification**
+   - ❌ **WRONG**: `word_generator.generate_report()`
+   - ✅ **CORRECT**: `word_generator.generate_word_report()`
+
+3. **Attribute vs Method Checks**
+   - ❌ **WRONG**: `if hasattr(pipeline, 'advanced_chart_generator') and pipeline.advanced_chart_generator:`
+   - ✅ **CORRECT**: `if hasattr(pipeline, 'generate_advanced_charts') and pipeline.advanced_chart_generator is not None:`
+
+### 🛠️ Critical Fixes Applied (Reference for Future)
+
+#### Issue #1: TypeError: 'bool' object is not callable
+
+**Root Cause**: In `enhanced_main.py`, the initialization was setting:
+```python
+self.generate_advanced_charts = generate_advanced_charts  # This OVERRODE the method!
+```
+
+**Fix Applied**:
+```python
+# BEFORE (BROKEN)
+self.generate_advanced_charts = generate_advanced_charts  # Boolean attribute
+def generate_advanced_charts(self, ...):  # Method with same name - CONFLICT!
+
+# AFTER (FIXED)  
+self.enable_advanced_charts = generate_advanced_charts   # Renamed attribute
+def generate_advanced_charts(self, ...):  # Method name preserved
+```
+
+**Files Changed**:
+- `warehouse_analysis_modular/enhanced_main.py` (lines 74, 234, 380)
+
+#### Issue #2: Missing generate_report Method
+
+**Root Cause**: Incorrect method name being called in `analysis_integration.py`:
+```python
+word_path = pipeline.word_generator.generate_report(...)  # Method doesn't exist!
+```
+
+**Fix Applied**:
+```python
+# BEFORE (BROKEN)
+word_path = pipeline.word_generator.generate_report(...)
+
+# AFTER (FIXED)
+word_path = pipeline.word_generator.generate_word_report(...)
+```
+
+**Files Changed**:
+- `warehouse_web_app/web_utils/analysis_integration.py` (line 363)
+
+#### Issue #3: Advanced Chart Generator Condition Check
+
+**Root Cause**: Wrong condition checking in `analysis_integration.py`:
+```python
+if hasattr(pipeline, 'advanced_chart_generator') and pipeline.advanced_chart_generator:
+```
+This fails when `advanced_chart_generator` is an object (truthy), not a boolean.
+
+**Fix Applied**:
+```python
+# BEFORE (BROKEN)
+if hasattr(pipeline, 'advanced_chart_generator') and pipeline.advanced_chart_generator:
+
+# AFTER (FIXED)
+if hasattr(pipeline, 'generate_advanced_charts') and pipeline.advanced_chart_generator is not None:
+```
+
+**Files Changed**:
+- `warehouse_web_app/web_utils/analysis_integration.py` (line 325)
+
+### 🎯 Prevention Strategy for Future Enhancements
+
+#### Step 1: Name Validation Checklist
+- [ ] No attribute names match method names
+- [ ] All method calls use correct method names
+- [ ] Object existence checks use `is not None` instead of truthiness
+
+#### Step 2: Integration Points Verification
+- [ ] `enhanced_main.py`: Attribute naming conventions followed
+- [ ] `analysis_integration.py`: Method calls verified
+- [ ] `word_report.py`: Method signatures match calls
+
+#### Step 3: Testing Protocol
+```bash
+# 1. Test import structure
+python -c "from warehouse_analysis_modular.enhanced_main import EnhancedWarehouseAnalysisPipeline; print('✅ Import OK')"
+
+# 2. Test method accessibility  
+python -c "
+from warehouse_analysis_modular.enhanced_main import EnhancedWarehouseAnalysisPipeline;
+p = EnhancedWarehouseAnalysisPipeline();
+print(f'✅ Method exists: {hasattr(p, \"generate_advanced_charts\")}');
+print(f'✅ Is callable: {callable(getattr(p, \"generate_advanced_charts\", None))}')
+"
+
+# 3. Test chart generation
+python test_enhanced_direct.py
+```
+
+### 📋 Implementation Delivery Checklist
+
+**For delivering enhancements "in one go" without pipeline failures:**
+
+#### Phase 1: Pre-Implementation
+- [ ] Review this Critical Pipeline Fixes section
+- [ ] Verify all method names using grep/search
+- [ ] Check for naming conflicts in target files
+
+#### Phase 2: Implementation  
+- [ ] Follow existing patterns in successful integrations
+- [ ] Use correct attribute names (not method names)
+- [ ] Verify method calls match actual method signatures
+
+#### Phase 3: Validation
+- [ ] Test chart generation independently
+- [ ] Verify charts appear in Word reports
+- [ ] Confirm no TypeError exceptions in logs
+
+#### Phase 4: Commit Strategy
+```bash
+# Stage critical files only (not output files)
+git add warehouse_analysis_modular/ warehouse_web_app/web_utils/
+
+# Commit with detailed message
+git commit -m "Add [Feature Name] with verified pipeline integration
+
+- New analyzer: [analyzer_name.py]
+- Excel integration: Added worksheet [sheet_name] 
+- Word report: Added section with AI insights
+- Charts: [chart_names] embedded in reports
+- Pipeline: Verified no naming conflicts or method errors
+
+✅ Tested: Charts appear correctly in Word reports
+✅ Pipeline: No TypeError or missing method errors
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### 🚀 Success Metrics
+
+**Enhancement is "delivered in one go" when:**
+- [ ] No `TypeError: 'bool' object is not callable` errors
+- [ ] No `'object' has no attribute 'method_name'` errors  
+- [ ] Enhanced charts appear in MS Word reports immediately
+- [ ] All existing functionality remains intact
+- [ ] Pipeline runs from start to finish without manual fixes
+
+---
+
+**🎯 CRITICAL REMINDER**: Always test the complete pipeline end-to-end before marking an enhancement as complete. The fixes documented here resolve the core architectural issues that were causing repeated pipeline failures.
 
 ---
 
