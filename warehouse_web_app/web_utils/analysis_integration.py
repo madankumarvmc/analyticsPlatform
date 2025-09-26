@@ -23,10 +23,14 @@ try:
     from warehouse_analysis_modular.analyzers import OrderAnalyzer, SkuAnalyzer, CrossTabulationAnalyzer
     from warehouse_analysis_modular.reporting import ChartGenerator, LLMIntegration, HTMLReportGenerator, ExcelExporter
     from warehouse_analysis_modular.utils.helpers import setup_logging
+    # Import enhanced analysis pipeline
+    from warehouse_analysis_modular.enhanced_main import EnhancedWarehouseAnalysisPipeline
     BACKEND_AVAILABLE = True
+    ENHANCED_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Backend modules not available: {e}")
     BACKEND_AVAILABLE = False
+    ENHANCED_AVAILABLE = False
 
 # Import data loading functionality
 try:
@@ -68,28 +72,30 @@ class WebAnalysisIntegrator:
             # Step 2: Update configuration with web parameters
             self._update_analysis_config(parameters)
             
-            # Step 3: Run analyses
-            order_results = self._run_order_analysis(enriched_data, parameters)
-            sku_results = self._run_sku_analysis(enriched_data, parameters)
-            cross_tab_results = self._run_cross_tabulation_analysis(
-                sku_results.get('sku_profile_abc_fms'), parameters
-            )
+            # Step 3: Run enhanced analysis pipeline if available
+            if ENHANCED_AVAILABLE:
+                combined_results = self._run_enhanced_analysis(enriched_data, parameters)
+            else:
+                # Fallback to basic analysis
+                order_results = self._run_order_analysis(enriched_data, parameters)
+                sku_results = self._run_sku_analysis(enriched_data, parameters)
+                cross_tab_results = self._run_cross_tabulation_analysis(
+                    sku_results.get('sku_profile_abc_fms'), parameters
+                )
+                combined_results = self._combine_analysis_results(
+                    order_results, sku_results, cross_tab_results
+                )
             
-            # Step 4: Combine results
-            combined_results = self._combine_analysis_results(
-                order_results, sku_results, cross_tab_results
-            )
-            
-            # Step 5: Generate outputs
+            # Step 4: Generate outputs
             outputs = self._generate_outputs(combined_results, parameters)
             
-            # Step 6: Prepare final response
+            # Step 5: Prepare final response
             return {
                 'success': True,
                 'analysis_results': combined_results,
                 'outputs': outputs,
                 'metadata': self._create_metadata(combined_results, parameters),
-                'message': 'Analysis completed successfully!'
+                'message': 'Analysis completed successfully with advanced features!' if ENHANCED_AVAILABLE else 'Analysis completed successfully!'
             }
             
         except Exception as e:
@@ -205,6 +211,62 @@ class WebAnalysisIntegrator:
             
         analyzer = CrossTabulationAnalyzer(sku_profile)
         return analyzer.run_full_analysis()
+    
+    def _run_enhanced_analysis(self, enriched_data: pd.DataFrame, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Run enhanced analysis pipeline with advanced features."""
+        if not ENHANCED_AVAILABLE:
+            return {}
+        
+        try:
+            # Initialize enhanced pipeline with parameters
+            enable_advanced = parameters.get('enable_advanced_features', True)
+            generate_charts = parameters.get('generate_charts', True)
+            generate_reports = parameters.get('generate_reports', True)
+            
+            pipeline = EnhancedWarehouseAnalysisPipeline(
+                generate_charts=generate_charts,
+                generate_advanced_charts=True,
+                generate_llm_summaries=True,
+                generate_html_report=True,
+                generate_word_report=generate_reports,
+                generate_excel_export=True,
+                run_advanced_analysis=enable_advanced
+            )
+            
+            # Run basic analysis first
+            basic_results = pipeline.run_basic_analysis(enriched_data)
+            
+            # Run advanced analysis if enabled
+            enhanced_results = {}
+            if enable_advanced:
+                enhanced_results = pipeline.run_advanced_analysis(enriched_data, basic_results)
+            
+            # Combine basic and enhanced results
+            combined_results = {**basic_results, **enhanced_results}
+            
+            # Generate charts and reports
+            if generate_charts:
+                # Use the enhanced pipeline's chart generation method
+                try:
+                    chart_results = pipeline.generate_advanced_charts(basic_results, enhanced_results)
+                    combined_results['chart_paths'] = chart_results
+                except Exception as e:
+                    self.logger.warning(f"Chart generation failed: {e}")
+            
+            # Note: Report generation is handled within the pipeline automatically
+            # based on the initialization parameters
+            
+            return combined_results
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced analysis failed: {str(e)}")
+            # Fallback to basic analysis
+            order_results = self._run_order_analysis(enriched_data, parameters)
+            sku_results = self._run_sku_analysis(enriched_data, parameters)
+            cross_tab_results = self._run_cross_tabulation_analysis(
+                sku_results.get('sku_profile_abc_fms'), parameters
+            )
+            return self._combine_analysis_results(order_results, sku_results, cross_tab_results)
     
     def _combine_analysis_results(self, order_results: Dict, sku_results: Dict, cross_tab_results: Dict) -> Dict[str, Any]:
         """Combine all analysis results."""

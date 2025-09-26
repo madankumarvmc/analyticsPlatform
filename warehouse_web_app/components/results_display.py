@@ -1088,14 +1088,32 @@ class ResultsDisplayManager:
         self._display_results_header(analysis_results)
         
         # Create tabs for different result categories - optimized for full width
-        tabs = st.tabs([
-            "📊 Overview", 
-            "📅 Date Analysis", 
-            "🏷️ SKU Analysis", 
-            "🔤 ABC-FMS Classification",
-            "📈 Interactive Charts",
-            "📄 Reports & Downloads"
+        # Check if advanced analysis is available
+        has_advanced = any(key in analysis_results for key in [
+            'advanced_order_analysis', 'picking_analysis', 'enhanced_abc_fms_analysis'
         ])
+        
+        if has_advanced:
+            tabs = st.tabs([
+                "📊 Overview", 
+                "📅 Date Analysis", 
+                "🏷️ SKU Analysis", 
+                "🔤 ABC-FMS Classification",
+                "🔄 Multi-Metric Correlation",
+                "📦 Case vs Piece Analysis",
+                "📋 2D Classification Matrix", 
+                "📈 Interactive Charts",
+                "📄 Reports & Downloads"
+            ])
+        else:
+            tabs = st.tabs([
+                "📊 Overview", 
+                "📅 Date Analysis", 
+                "🏷️ SKU Analysis", 
+                "🔤 ABC-FMS Classification",
+                "📈 Interactive Charts",
+                "📄 Reports & Downloads"
+            ])
         
         with tabs[0]:
             self._display_overview_fullwidth(analysis_results)
@@ -1109,11 +1127,27 @@ class ResultsDisplayManager:
         with tabs[3]:
             self._display_abc_fms_analysis_fullwidth(analysis_results)
         
-        with tabs[4]:
-            self._display_charts(outputs)
-        
-        with tabs[5]:
-            self._display_reports_fullwidth(outputs)
+        if has_advanced:
+            with tabs[4]:
+                self._display_multi_metric_correlation(analysis_results)
+            
+            with tabs[5]:
+                self._display_case_piece_analysis(analysis_results)
+            
+            with tabs[6]:
+                self._display_2d_classification_matrix(analysis_results)
+            
+            with tabs[7]:
+                self._display_charts(outputs)
+            
+            with tabs[8]:
+                self._display_reports_fullwidth(outputs)
+        else:
+            with tabs[4]:
+                self._display_charts(outputs)
+            
+            with tabs[5]:
+                self._display_reports_fullwidth(outputs)
     
     def _display_overview(self, results: Dict[str, Any]) -> None:
         """Display high-level overview of results."""
@@ -1596,6 +1630,268 @@ class ResultsDisplayManager:
                 if summary:
                     with st.expander(f"📝 {section.replace('_', ' ').title()} Insights"):
                         st.markdown(summary)
+
+    def _display_multi_metric_correlation(self, analysis_results: Dict[str, Any]) -> None:
+        """Display multi-metric correlation analysis."""
+        st.header("🔄 Multi-Metric Correlation Analysis")
+        
+        advanced_order = analysis_results.get('advanced_order_analysis', {})
+        if not advanced_order:
+            st.info("Multi-metric correlation analysis not available. This feature requires advanced analysis to be enabled.")
+            return
+        
+        correlation_analysis = advanced_order.get('correlation_analysis', {})
+        if correlation_analysis:
+            st.subheader("📊 Key Correlations")
+            
+            key_correlations = correlation_analysis.get('key_correlations', {})
+            if key_correlations:
+                # Display correlation metrics in a nice format
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    volume_lines = key_correlations.get('volume_lines', 0)
+                    st.metric("Volume ↔ Lines", f"{volume_lines:.3f}")
+                
+                with col2:
+                    volume_customers = key_correlations.get('volume_customers', 0)
+                    st.metric("Volume ↔ Customers", f"{volume_customers:.3f}")
+                
+                with col3:
+                    lines_customers = key_correlations.get('lines_customers', 0)
+                    st.metric("Lines ↔ Customers", f"{lines_customers:.3f}")
+            
+            # Display daily metrics if available
+            daily_metrics = advanced_order.get('daily_metrics', pd.DataFrame())
+            if not daily_metrics.empty and len(daily_metrics) > 1:
+                st.subheader("📈 Daily Multi-Metric Trends")
+                
+                # Create multi-metric time series chart
+                fig = make_subplots(
+                    rows=2, cols=1,
+                    subplot_titles=('Volume & Lines Over Time', 'Customer Activity'),
+                    specs=[[{"secondary_y": True}], [{"secondary_y": False}]],
+                    vertical_spacing=0.15
+                )
+                
+                # Plot volume and lines
+                if 'Total_Case_Equiv' in daily_metrics.columns:
+                    fig.add_trace(
+                        go.Scatter(x=daily_metrics['Date'], y=daily_metrics['Total_Case_Equiv'], 
+                                name="Case Equivalent", line=dict(color='blue')), 
+                        row=1, col=1
+                    )
+                
+                if 'Total_Lines' in daily_metrics.columns:
+                    fig.add_trace(
+                        go.Scatter(x=daily_metrics['Date'], y=daily_metrics['Total_Lines'], 
+                                name="Total Lines", line=dict(color='red'), yaxis='y2'), 
+                        row=1, col=1
+                    )
+                
+                # Plot customers
+                if 'Distinct_Customers' in daily_metrics.columns:
+                    fig.add_trace(
+                        go.Scatter(x=daily_metrics['Date'], y=daily_metrics['Distinct_Customers'], 
+                                name="Distinct Customers", line=dict(color='green')), 
+                        row=2, col=1
+                    )
+                
+                fig.update_layout(height=600, showlegend=True)
+                fig.update_yaxes(title_text="Case Equivalent", row=1, col=1)
+                fig.update_yaxes(title_text="Lines", secondary_y=True, row=1, col=1)
+                fig.update_yaxes(title_text="Customers", row=2, col=1)
+                
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Enhanced percentile analysis
+        enhanced_percentiles = advanced_order.get('enhanced_percentile_analysis', {})
+        if enhanced_percentiles:
+            st.subheader("📊 Enhanced Capacity Planning")
+            
+            percentile_data = enhanced_percentiles.get('percentile_breakdown', {})
+            if percentile_data:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write("**Volume Percentiles**")
+                    volume_percentiles = {k: v for k, v in percentile_data.items() if 'volume' in k.lower()}
+                    if volume_percentiles:
+                        df_vol = pd.DataFrame(list(volume_percentiles.items()), columns=['Percentile', 'Value'])
+                        st.dataframe(df_vol, use_container_width=True)
+                
+                with col2:
+                    st.write("**Line Count Percentiles**") 
+                    line_percentiles = {k: v for k, v in percentile_data.items() if 'line' in k.lower()}
+                    if line_percentiles:
+                        df_lines = pd.DataFrame(list(line_percentiles.items()), columns=['Percentile', 'Value'])
+                        st.dataframe(df_lines, use_container_width=True)
+
+    def _display_case_piece_analysis(self, analysis_results: Dict[str, Any]) -> None:
+        """Display case vs piece picking analysis."""
+        st.header("📦 Case vs Piece Picking Analysis")
+        
+        picking_analysis = analysis_results.get('picking_analysis', {})
+        if not picking_analysis:
+            st.info("Case vs piece picking analysis not available. This feature requires advanced analysis to be enabled.")
+            return
+        
+        # Picking breakdown
+        picking_breakdown = picking_analysis.get('picking_breakdown', {})
+        if picking_breakdown:
+            st.subheader("📊 Picking Method Distribution")
+            
+            # Create DataFrame for visualization
+            breakdown_data = []
+            for picking_type, data in picking_breakdown.items():
+                breakdown_data.append({
+                    'Picking Type': picking_type,
+                    'Order Count': data.get('count', 0),
+                    'Percentage': data.get('percentage', 0)
+                })
+            
+            if breakdown_data:
+                df_breakdown = pd.DataFrame(breakdown_data)
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Pie chart
+                    fig_pie = px.pie(df_breakdown, values='Order Count', names='Picking Type', 
+                                   title="Picking Method Distribution")
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                
+                with col2:
+                    # Bar chart
+                    fig_bar = px.bar(df_breakdown, x='Picking Type', y='Order Count',
+                                   title="Orders by Picking Method")
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                
+                # Summary table
+                st.subheader("📋 Detailed Breakdown")
+                st.dataframe(df_breakdown, use_container_width=True)
+        
+        # Category analysis
+        category_analysis = picking_analysis.get('category_analysis', {})
+        if category_analysis:
+            st.subheader("🏷️ Picking by Category")
+            
+            category_data = []
+            for category, data in category_analysis.items():
+                category_data.append({
+                    'Category': category,
+                    'Case Only': data.get('Case_Only', 0),
+                    'Piece Only': data.get('Piece_Only', 0),
+                    'Mixed': data.get('Mixed', 0)
+                })
+            
+            if category_data:
+                df_category = pd.DataFrame(category_data)
+                
+                # Stacked bar chart
+                fig_stacked = go.Figure()
+                
+                fig_stacked.add_trace(go.Bar(
+                    name='Case Only',
+                    x=df_category['Category'],
+                    y=df_category['Case Only'],
+                    marker_color='blue'
+                ))
+                
+                fig_stacked.add_trace(go.Bar(
+                    name='Piece Only', 
+                    x=df_category['Category'],
+                    y=df_category['Piece Only'],
+                    marker_color='red'
+                ))
+                
+                fig_stacked.add_trace(go.Bar(
+                    name='Mixed',
+                    x=df_category['Category'], 
+                    y=df_category['Mixed'],
+                    marker_color='green'
+                ))
+                
+                fig_stacked.update_layout(
+                    barmode='stack',
+                    title='Picking Methods by Category',
+                    xaxis_title='Category',
+                    yaxis_title='Order Count'
+                )
+                
+                st.plotly_chart(fig_stacked, use_container_width=True)
+                st.dataframe(df_category, use_container_width=True)
+
+    def _display_2d_classification_matrix(self, analysis_results: Dict[str, Any]) -> None:
+        """Display 2D ABC-FMS classification matrix."""
+        st.header("📋 2D Classification Matrix")
+        
+        enhanced_abc = analysis_results.get('enhanced_abc_fms_analysis', {})
+        if not enhanced_abc:
+            st.info("2D classification matrix analysis not available. This feature requires advanced analysis to be enabled.")
+            return
+        
+        # Classification matrix
+        classification_matrix = enhanced_abc.get('classification_matrix', {})
+        if classification_matrix:
+            st.subheader("🔤 ABC × FMS Cross-Classification")
+            
+            # SKU count matrix
+            sku_count_matrix = classification_matrix.get('sku_count_matrix', pd.DataFrame())
+            if not sku_count_matrix.empty:
+                st.write("**SKU Count Distribution**")
+                
+                # Create heatmap
+                fig_heatmap = px.imshow(sku_count_matrix.iloc[:-1, :-1],  # Exclude totals
+                                     text_auto=True,
+                                     aspect="auto",
+                                     title="SKU Count by ABC-FMS Classification")
+                st.plotly_chart(fig_heatmap, use_container_width=True)
+                
+                # Show full table including totals
+                st.dataframe(sku_count_matrix, use_container_width=True)
+            
+            # Volume matrix
+            volume_matrix = classification_matrix.get('volume_matrix', pd.DataFrame())
+            if not volume_matrix.empty:
+                st.subheader("📊 Volume Distribution Matrix")
+                
+                # Create volume heatmap
+                fig_vol_heatmap = px.imshow(volume_matrix.iloc[:-1, :-1],  # Exclude totals
+                                         text_auto=True,
+                                         aspect="auto", 
+                                         title="Volume by ABC-FMS Classification")
+                st.plotly_chart(fig_vol_heatmap, use_container_width=True)
+                
+                st.dataframe(volume_matrix, use_container_width=True)
+        
+        # Enhanced insights
+        enhanced_insights = enhanced_abc.get('enhanced_insights', {})
+        if enhanced_insights:
+            st.subheader("🔍 Classification Insights")
+            
+            # Segmentation analysis
+            segmentation = enhanced_insights.get('segmentation_analysis', {})
+            if segmentation:
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    high_value = segmentation.get('high_value_segments', [])
+                    st.metric("High Value Segments", len(high_value))
+                    if high_value:
+                        st.write("**High Value:**")
+                        for segment in high_value[:3]:  # Show top 3
+                            st.write(f"• {segment}")
+                
+                with col2:
+                    operational_complex = segmentation.get('operational_complexity', {})
+                    complex_count = len([k for k, v in operational_complex.items() if v > 0.7])
+                    st.metric("High Complexity", complex_count)
+                
+                with col3:
+                    efficiency_score = enhanced_insights.get('classification_effectiveness', {})
+                    eff_score = efficiency_score.get('overall_score', 0)
+                    st.metric("Effectiveness Score", f"{eff_score:.2f}")
 
 
 def create_results_display_section(analysis_results: Dict[str, Any], 

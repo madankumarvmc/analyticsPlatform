@@ -155,6 +155,66 @@ CHART_INSIGHT_PROMPTS = {
 }
 
 # =============================================================================
+# ADVANCED ANALYSIS PROMPTS
+# =============================================================================
+
+ADVANCED_ANALYSIS_PROMPTS = {
+    'multi_metric_correlation': {
+        'instruction': '''Analyze multi-metric correlations and provide exactly 3 bullets:
+        
+        • **Volume-Lines Correlation**: Use actual correlation coefficient and significance from data
+        • **Customer-Volume Relationship**: Use calculated correlation and operational impact
+        • **Operational Synchronization**: Key insight about metric alignment using real correlation data
+        
+        Use only actual correlation values from provided facts. Bold all correlation coefficients and significance levels.''',
+        'context': 'Multi-Metric Correlation Analysis'
+    },
+    
+    'picking_methodology': {
+        'instruction': '''Provide exactly 3 bullets for picking methodology analysis:
+        
+        • **Case vs Piece Impact**: Use actual percentages from data for lines vs volume contribution
+        • **Category Complexity**: Identify categories with highest PCS lines percentage from real data
+        • **Operational Efficiency**: Key insight about piece picking efficiency using calculated metrics
+        
+        Use only actual picking percentages from provided facts. Bold all percentage values and category names.''',
+        'context': 'Picking Methodology Analysis'
+    },
+    
+    'enhanced_abc_fms_matrix': {
+        'instruction': '''Provide exactly 3 bullets for 2D classification matrix analysis:
+        
+        • **High-Impact Segments**: Use actual AF-class percentages (SKUs vs volume vs lines) from data
+        • **Low-Impact Segments**: Use actual CS-class distribution patterns from real data
+        • **Classification Effectiveness**: Overall matrix balance assessment using calculated metrics
+        
+        Use only actual classification percentages from provided facts. Bold all segment percentages and class names.''',
+        'context': '2D Classification Matrix Analysis'
+    },
+    
+    'capacity_planning_advanced': {
+        'instruction': '''Provide exactly 3 bullets for advanced capacity planning:
+        
+        • **Design Capacity**: Use actual 95th percentile values and recommended buffer percentages
+        • **Peak Management**: Use calculated peak-to-95th ratios and operational strategies
+        • **Utilization Optimization**: Average utilization rates and efficiency opportunities from data
+        
+        Use only actual percentile values and ratios from provided facts. Bold all capacity numbers and percentages.''',
+        'context': 'Advanced Capacity Planning Analysis'
+    },
+    
+    'operational_complexity': {
+        'instruction': '''Provide exactly 2 bullets for operational complexity assessment:
+        
+        • **Complexity Score**: Use calculated overall complexity score and level from data
+        • **Management Strategy**: Specific recommendations based on actual complexity factors
+        
+        Use only actual complexity scores from provided facts. Bold complexity levels and key metrics.''',
+        'context': 'Operational Complexity Analysis'
+    }
+}
+
+# =============================================================================
 # WORD DOCUMENT SPECIFIC PROMPTS
 # =============================================================================
 
@@ -202,7 +262,7 @@ def get_prompt_by_type(prompt_type: str, section_key: str) -> dict:
     Get prompt configuration by type and section key.
     
     Args:
-        prompt_type: Type of prompt ('executive', 'section', 'chart', 'word')
+        prompt_type: Type of prompt ('executive', 'section', 'chart', 'word', 'advanced')
         section_key: Specific section key
         
     Returns:
@@ -212,7 +272,8 @@ def get_prompt_by_type(prompt_type: str, section_key: str) -> dict:
         'executive': EXECUTIVE_SUMMARY_PROMPTS,
         'section': SECTION_ANALYSIS_PROMPTS,
         'chart': CHART_INSIGHT_PROMPTS,
-        'word': WORD_DOCUMENT_PROMPTS
+        'word': WORD_DOCUMENT_PROMPTS,
+        'advanced': ADVANCED_ANALYSIS_PROMPTS
     }
     
     return prompt_maps.get(prompt_type, {}).get(section_key, {
@@ -231,7 +292,8 @@ def get_all_prompts() -> dict:
         'executive_summary': EXECUTIVE_SUMMARY_PROMPTS,
         'section_analysis': SECTION_ANALYSIS_PROMPTS,
         'chart_insights': CHART_INSIGHT_PROMPTS,
-        'word_document': WORD_DOCUMENT_PROMPTS
+        'word_document': WORD_DOCUMENT_PROMPTS,
+        'advanced_analysis': ADVANCED_ANALYSIS_PROMPTS
     }
 
 def validate_prompt_key(prompt_type: str, section_key: str) -> bool:

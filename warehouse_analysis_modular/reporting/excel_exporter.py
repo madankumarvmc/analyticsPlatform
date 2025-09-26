@@ -63,6 +63,13 @@ class ExcelExporter:
             'abc_fms_summary': EXCEL_SHEETS['abc_fms_summary']
         }
         
+        # Add advanced analysis sheet mappings
+        advanced_mapping = {
+            'advanced_order_analysis': 'Advanced Order Analysis',
+            'picking_analysis': 'Picking Analysis',
+            'enhanced_abc_fms_analysis': 'Enhanced ABC-FMS'
+        }
+        
         for result_key, sheet_name in sheet_mapping.items():
             if result_key in analysis_results:
                 df = analysis_results[result_key]
@@ -84,6 +91,9 @@ class ExcelExporter:
                 })
                 export_data[EXCEL_SHEETS['sku_summary']] = sku_summary
                 self.logger.info("Created SKU summary from SKU profile data")
+        
+        # Process advanced analysis results
+        self._process_advanced_analysis(analysis_results, advanced_mapping, export_data)
         
         self.logger.info(f"Prepared {len(export_data)} sheets for export")
         return export_data
@@ -212,6 +222,229 @@ class ExcelExporter:
                 formatted_df[col] = formatted_df[col].round(2)
         
         return formatted_df
+    
+    def _process_advanced_analysis(self, analysis_results: Dict, advanced_mapping: Dict, export_data: Dict):
+        """Process advanced analysis results and add to export data."""
+        
+        # Process Advanced Order Analysis
+        if 'advanced_order_analysis' in analysis_results:
+            advanced_order = analysis_results['advanced_order_analysis']
+            
+            # Multi-metric correlations
+            if 'correlation_analysis' in advanced_order:
+                correlations = advanced_order['correlation_analysis'].get('key_correlations', {})
+                if correlations:
+                    corr_df = pd.DataFrame([
+                        {'Metric Pair': 'Volume ↔ Lines', 'Correlation': correlations.get('volume_lines', 0)},
+                        {'Metric Pair': 'Volume ↔ Customers', 'Correlation': correlations.get('volume_customers', 0)},
+                        {'Metric Pair': 'Lines ↔ Customers', 'Correlation': correlations.get('lines_customers', 0)}
+                    ])
+                    export_data['Multi-Metric Correlations'] = corr_df
+            
+            # Daily metrics
+            daily_metrics = advanced_order.get('daily_metrics', pd.DataFrame())
+            if not daily_metrics.empty:
+                export_data['Daily Multi-Metrics'] = daily_metrics
+            
+            # Enhanced percentiles
+            if 'enhanced_percentile_analysis' in advanced_order:
+                percentile_data = advanced_order['enhanced_percentile_analysis'].get('percentile_breakdown', {})
+                if percentile_data:
+                    percentile_df = pd.DataFrame([
+                        {'Metric': key, 'Value': value} for key, value in percentile_data.items()
+                    ])
+                    export_data['Enhanced Percentiles'] = percentile_df
+        
+        # Process Picking Analysis
+        if 'picking_analysis' in analysis_results:
+            picking_analysis = analysis_results['picking_analysis']
+            
+            # Picking breakdown (check both old and new data structure)
+            picking_breakdown = picking_analysis.get('picking_breakdown', {})
+            if not picking_breakdown:
+                # Try new data structure
+                overall_patterns = picking_analysis.get('overall_picking_patterns', {})
+                picking_summary = overall_patterns.get('picking_summary')
+                if picking_summary is not None and not picking_summary.empty:
+                    export_data['Picking Method Breakdown'] = picking_summary
+            else:
+                breakdown_data = []
+                for picking_type, data in picking_breakdown.items():
+                    breakdown_data.append({
+                        'Picking Type': picking_type,
+                        'Count': data.get('count', 0),
+                        'Percentage': data.get('percentage', 0)
+                    })
+                if breakdown_data:
+                    export_data['Picking Method Breakdown'] = pd.DataFrame(breakdown_data)
+            
+            # Category analysis (check both old and new data structure)
+            category_analysis = picking_analysis.get('category_analysis', {})
+            if not category_analysis:
+                # Try new data structure with list format
+                category_picking = picking_analysis.get('category_picking_analysis', {})
+                if 'category_breakdown' in category_picking:
+                    category_breakdown_list = category_picking['category_breakdown']
+                    if isinstance(category_breakdown_list, list):
+                        category_data = []
+                        for category_item in category_breakdown_list:
+                            if isinstance(category_item, dict):
+                                category_data.append({
+                                    'Category': category_item.get('category', 'Unknown'),
+                                    'Total Lines': category_item.get('total_lines', 0),
+                                    'Total Volume': category_item.get('total_volume', 0),
+                                    'Piece Lines %': category_item.get('pcs_lines_percentage', 0),
+                                    'Case Only %': category_item.get('case_only_lines_percentage', 0),
+                                    'Operational Complexity': category_item.get('operational_complexity', 0)
+                                })
+                        if category_data:
+                            export_data['Picking by Category'] = pd.DataFrame(category_data)
+            elif category_analysis:
+                # Old structure
+                category_data = []
+                for category, data in category_analysis.items():
+                    category_data.append({
+                        'Category': category,
+                        'Case Only': data.get('Case_Only', 0),
+                        'Piece Only': data.get('Piece_Only', 0),
+                        'Mixed': data.get('Mixed', 0)
+                    })
+                if category_data:
+                    export_data['Picking by Category'] = pd.DataFrame(category_data)
+        
+        # Process Enhanced ABC-FMS Analysis
+        if 'enhanced_abc_fms_analysis' in analysis_results:
+            enhanced_abc = analysis_results['enhanced_abc_fms_analysis']
+            
+            # Classification matrix (check both old and new data structure)
+            matrix_data = enhanced_abc.get('classification_matrix')
+            if not matrix_data:
+                # Try new data structure
+                matrix_data = enhanced_abc.get('classification_matrix_2d')
+            
+            if matrix_data:
+                
+                # SKU count matrix
+                sku_count_matrix = matrix_data.get('sku_count_matrix', pd.DataFrame())
+                if not sku_count_matrix.empty:
+                    export_data['ABC-FMS SKU Count Matrix'] = sku_count_matrix
+                
+                # Volume matrix
+                volume_matrix = matrix_data.get('volume_matrix', pd.DataFrame())
+                if not volume_matrix.empty:
+                    export_data['ABC-FMS Volume Matrix'] = volume_matrix
+            
+            # Enhanced insights
+            if 'enhanced_insights' in enhanced_abc:
+                insights = enhanced_abc['enhanced_insights']
+                
+                # Segmentation analysis
+                segmentation = insights.get('segmentation_analysis', {})
+                if segmentation:
+                    seg_data = []
+                    high_value = segmentation.get('high_value_segments', [])
+                    for segment in high_value:
+                        seg_data.append({'Segment': segment, 'Type': 'High Value'})
+                    
+                    if seg_data:
+                        export_data['High Value Segments'] = pd.DataFrame(seg_data)
+        
+        # Process Category Performance Analysis
+        if 'category_performance_analysis' in analysis_results:
+            category_analysis = analysis_results['category_performance_analysis']
+            
+            # SKU Distribution Table
+            if 'sku_distribution' in category_analysis:
+                sku_dist = category_analysis['sku_distribution']
+                if not sku_dist.empty:
+                    export_data['Category SKU Distribution'] = sku_dist
+            
+            # Cases Distribution Table  
+            if 'cases_distribution' in category_analysis:
+                cases_dist = category_analysis['cases_distribution']
+                if not cases_dist.empty:
+                    export_data['Category Volume Distribution'] = cases_dist
+            
+            # Lines Distribution Table
+            if 'lines_distribution' in category_analysis:
+                lines_dist = category_analysis['lines_distribution']
+                if not lines_dist.empty:
+                    export_data['Category Lines Distribution'] = lines_dist
+                    
+            # Performance Summary
+            if 'performance_summary' in category_analysis:
+                perf_summary = category_analysis['performance_summary']
+                if not perf_summary.empty:
+                    export_data['Category Performance Summary'] = perf_summary
+            
+            # Slotting Recommendations
+            if 'slotting_insights' in category_analysis:
+                insights = category_analysis['slotting_insights']
+                if insights and 'slotting_recommendations' in insights:
+                    recommendations = insights['slotting_recommendations']
+                    
+                    # Create slotting recommendations worksheet
+                    rec_data = []
+                    
+                    # High priority (dock proximity)
+                    for category in recommendations.get('dock_proximity', []):
+                        rec_data.append({
+                            'Category': category,
+                            'Recommendation': 'Dock Proximity',
+                            'Priority': 'High',
+                            'Reason': 'High volume and velocity - needs easy access'
+                        })
+                    
+                    # Medium priority (structured bins)
+                    for category in recommendations.get('structured_bins', []):
+                        rec_data.append({
+                            'Category': category,
+                            'Recommendation': 'Structured Bins',
+                            'Priority': 'Medium', 
+                            'Reason': 'Moderate activity - needs organized storage'
+                        })
+                    
+                    # Standard storage
+                    for category in recommendations.get('standard_storage', []):
+                        rec_data.append({
+                            'Category': category,
+                            'Recommendation': 'Standard Storage',
+                            'Priority': 'Low',
+                            'Reason': 'Low activity - standard placement acceptable'
+                        })
+                    
+                    if rec_data:
+                        export_data['Slotting Recommendations'] = pd.DataFrame(rec_data)
+                
+                # Key insights summary
+                if 'key_findings' in insights:
+                    findings = insights['key_findings']
+                    insights_data = []
+                    
+                    if findings.get('top_volume_category'):
+                        insights_data.append({
+                            'Metric': 'Top Volume Category',
+                            'Value': findings['top_volume_category'],
+                            'Impact': 'Highest throughput contributor'
+                        })
+                    
+                    if findings.get('top_velocity_category'): 
+                        insights_data.append({
+                            'Metric': 'Top Velocity Category',
+                            'Value': findings['top_velocity_category'],
+                            'Impact': 'Most frequently ordered'
+                        })
+                    
+                    if findings.get('critical_abc_fms_classes'):
+                        critical_classes = ', '.join(findings['critical_abc_fms_classes'])
+                        insights_data.append({
+                            'Metric': 'Critical ABC-FMS Classes',
+                            'Value': critical_classes,
+                            'Impact': 'Focus classes for efficiency optimization'
+                        })
+                    
+                    if insights_data:
+                        export_data['Category Key Insights'] = pd.DataFrame(insights_data)
     
     def export_to_excel(self, analysis_results: Dict, 
                        include_formatting: bool = True) -> str:

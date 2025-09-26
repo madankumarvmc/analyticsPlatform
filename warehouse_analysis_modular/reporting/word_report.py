@@ -572,6 +572,9 @@ class WordReportGenerator:
         
         doc.add_page_break()
         
+        # Add advanced analysis sections if available
+        self._add_advanced_analysis_sections(doc, analysis_results)
+        
         # Add recommendations section
         self._add_heading_with_style(doc, "Strategic Recommendations", level=1)
         
@@ -600,6 +603,9 @@ class WordReportGenerator:
                 self._add_ai_insight_section(doc, "Action Plan", fallback_recommendations)
         except Exception as e:
             self.logger.error(f"Failed to generate recommendations: {e}")
+        
+        # Add advanced analysis sections if available
+        self._add_advanced_analysis_sections(doc, analysis_results)
         
         # Save document with enhanced error handling
         output_path = self.output_dir / filename
@@ -632,6 +638,263 @@ class WordReportGenerator:
         except Exception as e:
             self.logger.error(f"Failed to save Word document: {e}")
             raise
+    
+    def _add_advanced_analysis_sections(self, doc: Document, analysis_results: Dict):
+        """Add advanced analysis sections if available."""
+        
+        # Multi-Metric Correlation Analysis
+        if 'advanced_order_analysis' in analysis_results:
+            advanced_analysis = analysis_results['advanced_order_analysis']
+            
+            if 'correlation_analysis' in advanced_analysis:
+                self._add_heading_with_style(doc, "Multi-Metric Correlation Analysis", level=1)
+                
+                try:
+                    correlation_insights = self.llm_integration.generate_correlation_summary(
+                        advanced_analysis['correlation_analysis']
+                    )
+                    if correlation_insights and not correlation_insights.startswith("("):
+                        self._add_ai_insight_section(doc, "Operational Metrics Correlation", correlation_insights)
+                except Exception as e:
+                    self.logger.error(f"Failed to generate correlation insights: {e}")
+                
+                # Add correlation matrix table if available
+                if 'correlation_matrix' in advanced_analysis['correlation_analysis']:
+                    corr_matrix = advanced_analysis['correlation_analysis']['correlation_matrix']
+                    if not corr_matrix.empty:
+                        self._add_data_table(doc, "Correlation Matrix", corr_matrix, max_rows=5)
+                
+                doc.add_page_break()
+        
+        # Picking Methodology Analysis
+        if 'picking_analysis' in analysis_results:
+            self._add_heading_with_style(doc, "Case vs Piece Picking Analysis", level=1)
+            
+            try:
+                picking_insights = self.llm_integration.generate_picking_summary(
+                    analysis_results['picking_analysis']
+                )
+                if picking_insights and not picking_insights.startswith("("):
+                    self._add_ai_insight_section(doc, "Picking Methodology Insights", picking_insights)
+            except Exception as e:
+                self.logger.error(f"Failed to generate picking insights: {e}")
+            
+            # Add picking summary table
+            picking_analysis = analysis_results['picking_analysis']
+            if 'overall_picking_patterns' in picking_analysis:
+                picking_summary = picking_analysis['overall_picking_patterns'].get('picking_summary')
+                if picking_summary is not None and not picking_summary.empty:
+                    self._add_data_table(doc, "Picking Method Distribution", picking_summary, max_rows=5)
+            
+            doc.add_page_break()
+        
+        # Enhanced ABC-FMS 2D Classification
+        if 'enhanced_abc_fms_analysis' in analysis_results:
+            self._add_heading_with_style(doc, "2D Classification Matrix Analysis", level=1)
+            
+            try:
+                enhanced_abc_insights = self.llm_integration.generate_enhanced_abc_fms_summary(
+                    analysis_results['enhanced_abc_fms_analysis']
+                )
+                if enhanced_abc_insights and not enhanced_abc_insights.startswith("("):
+                    self._add_ai_insight_section(doc, "2D Matrix Classification", enhanced_abc_insights)
+            except Exception as e:
+                self.logger.error(f"Failed to generate enhanced ABC-FMS insights: {e}")
+            
+            # Add classification matrix summary
+            enhanced_analysis = analysis_results['enhanced_abc_fms_analysis']
+            if 'classification_matrix_2d' in enhanced_analysis:
+                matrices = enhanced_analysis['classification_matrix_2d']
+                if 'combined_matrix' in matrices:
+                    combined_matrix = matrices['combined_matrix']
+                    if not combined_matrix.empty:
+                        self._add_data_table(doc, "2D Classification Summary", combined_matrix, max_rows=8)
+            
+            doc.add_page_break()
+        
+        # Advanced Capacity Planning
+        if 'advanced_order_analysis' in analysis_results:
+            advanced_analysis = analysis_results['advanced_order_analysis']
+            
+            if 'enhanced_percentile_analysis' in advanced_analysis and 'peak_ratios' in advanced_analysis:
+                self._add_heading_with_style(doc, "Advanced Capacity Planning", level=1)
+                
+                try:
+                    capacity_insights = self.llm_integration.generate_advanced_capacity_summary(
+                        advanced_analysis['enhanced_percentile_analysis'],
+                        advanced_analysis['peak_ratios']
+                    )
+                    if capacity_insights and not capacity_insights.startswith("("):
+                        self._add_ai_insight_section(doc, "Capacity Planning Strategy", capacity_insights)
+                except Exception as e:
+                    self.logger.error(f"Failed to generate advanced capacity insights: {e}")
+                
+                # Add capacity recommendations table
+                if 'capacity_recommendations' in advanced_analysis:
+                    capacity_recs = advanced_analysis['capacity_recommendations']
+                    if 'volume_capacity' in capacity_recs:
+                        vol_capacity = capacity_recs['volume_capacity']
+                        
+                        # Create capacity planning summary table
+                        capacity_data = []
+                        capacity_data.append(['Design Capacity Base', f"{vol_capacity.get('design_capacity_base', 0):,.0f}"])
+                        capacity_data.append(['Recommended Buffer', f"{vol_capacity.get('recommended_buffer_percentage', 0):.0f}%"])
+                        capacity_data.append(['Total Design Capacity', f"{vol_capacity.get('total_design_capacity', 0):,.0f}"])
+                        capacity_data.append(['Avg Utilization', f"{vol_capacity.get('utilization_at_avg', 0):.0f}%"])
+                        
+                        capacity_df = pd.DataFrame(capacity_data, columns=['Metric', 'Value'])
+                        self._add_data_table(doc, "Capacity Planning Recommendations", capacity_df, max_rows=4)
+                
+                doc.add_page_break()
+        
+        # Operational Complexity Assessment
+        if 'advanced_order_analysis' in analysis_results:
+            advanced_analysis = analysis_results['advanced_order_analysis']
+            
+            if 'operational_complexity' in advanced_analysis:
+                self._add_heading_with_style(doc, "Operational Complexity Assessment", level=1)
+                
+                try:
+                    complexity_insights = self.llm_integration.generate_complexity_summary(
+                        advanced_analysis['operational_complexity']
+                    )
+                    if complexity_insights and not complexity_insights.startswith("("):
+                        self._add_ai_insight_section(doc, "Complexity Analysis", complexity_insights)
+                except Exception as e:
+                    self.logger.error(f"Failed to generate complexity insights: {e}")
+                
+                # Add complexity factors table
+                complexity_data = advanced_analysis['operational_complexity']
+                if 'complexity_factors' in complexity_data:
+                    factors = complexity_data['complexity_factors']
+                    
+                    complexity_table_data = []
+                    complexity_table_data.append(['Overall Score', f"{complexity_data.get('overall_complexity_score', 0):.1f}"])
+                    complexity_table_data.append(['Complexity Level', complexity_data.get('complexity_level', 'Unknown')])
+                    complexity_table_data.append(['Volume Variability', f"{factors.get('volume_variability', 0):.1f}"])
+                    complexity_table_data.append(['Multi-truck Complexity', f"{factors.get('multi_truck_complexity', 0):.1f}%"])
+                    
+                    complexity_df = pd.DataFrame(complexity_table_data, columns=['Factor', 'Value'])
+                    self._add_data_table(doc, "Complexity Factors", complexity_df, max_rows=4)
+                
+                doc.add_page_break()
+        
+        # Category Performance Distribution Analysis
+        if 'category_performance_analysis' in analysis_results:
+            self._add_heading_with_style(doc, "Category Performance Distribution Analysis", level=1)
+            
+            category_analysis = analysis_results['category_performance_analysis']
+            
+            try:
+                # Generate AI insights for category performance
+                category_insights = self.llm_integration.generate_category_performance_summary(
+                    category_analysis
+                )
+                if category_insights and not category_insights.startswith("("):
+                    self._add_ai_insight_section(doc, "Strategic Slotting Insights", category_insights)
+            except Exception as e:
+                self.logger.error(f"Failed to generate category performance insights: {e}")
+            
+            # Add performance summary table
+            if 'performance_summary' in category_analysis:
+                performance_summary = category_analysis['performance_summary']
+                if not performance_summary.empty:
+                    # Show top 10 categories by priority score
+                    top_categories = performance_summary.head(10)
+                    self._add_data_table(doc, "Category Performance Summary", top_categories, max_rows=10)
+            
+            # Add slotting recommendations
+            if 'slotting_insights' in category_analysis:
+                insights = category_analysis['slotting_insights']
+                if 'slotting_recommendations' in insights:
+                    recommendations = insights['slotting_recommendations']
+                    
+                    # Create recommendations summary
+                    rec_summary_data = []
+                    
+                    # High priority recommendations
+                    dock_proximity = recommendations.get('dock_proximity', [])
+                    if dock_proximity:
+                        rec_summary_data.append([
+                            'Dock Proximity', 
+                            ', '.join(dock_proximity[:3]), 
+                            'High volume & velocity'
+                        ])
+                    
+                    # Medium priority recommendations  
+                    structured_bins = recommendations.get('structured_bins', [])
+                    if structured_bins:
+                        rec_summary_data.append([
+                            'Structured Bins',
+                            ', '.join(structured_bins[:5]),
+                            'Moderate activity level'
+                        ])
+                    
+                    # Standard storage
+                    standard_storage = recommendations.get('standard_storage', [])
+                    if standard_storage and len(standard_storage) <= 5:
+                        rec_summary_data.append([
+                            'Standard Storage',
+                            ', '.join(standard_storage),
+                            'Low activity level'
+                        ])
+                    elif len(standard_storage) > 5:
+                        rec_summary_data.append([
+                            'Standard Storage',
+                            f'{len(standard_storage)} categories',
+                            'Low activity level'
+                        ])
+                    
+                    if rec_summary_data:
+                        rec_df = pd.DataFrame(rec_summary_data, columns=['Strategy', 'Categories', 'Rationale'])
+                        self._add_data_table(doc, "Slotting Strategy Recommendations", rec_df, max_rows=3)
+            
+            # Add the three distribution tables
+            
+            # SKU Distribution Table
+            if 'sku_distribution' in category_analysis:
+                sku_dist = category_analysis['sku_distribution']
+                if not sku_dist.empty:
+                    # Show top categories only to keep table manageable
+                    sku_dist_top = sku_dist.head(8)  # Show top 7 categories + Grand Total
+                    self._add_data_table(doc, "SKU % Distribution by Category", sku_dist_top, max_rows=8)
+            
+            # Cases Distribution Table
+            if 'cases_distribution' in category_analysis:
+                cases_dist = category_analysis['cases_distribution']
+                if not cases_dist.empty:
+                    # Show top categories only
+                    cases_dist_top = cases_dist.head(8)
+                    self._add_data_table(doc, "Cases % Distribution by Category", cases_dist_top, max_rows=8)
+            
+            # Lines Distribution Table  
+            if 'lines_distribution' in category_analysis:
+                lines_dist = category_analysis['lines_distribution']
+                if not lines_dist.empty:
+                    # Show top categories only
+                    lines_dist_top = lines_dist.head(8)
+                    self._add_data_table(doc, "Lines % Distribution by Category", lines_dist_top, max_rows=8)
+            
+            # Add key findings summary
+            if 'slotting_insights' in category_analysis:
+                insights = category_analysis['slotting_insights']
+                if 'key_findings' in insights:
+                    findings = insights['key_findings']
+                    
+                    findings_data = []
+                    if findings.get('top_volume_category'):
+                        findings_data.append(['Top Volume Category', findings['top_volume_category']])
+                    if findings.get('top_velocity_category'):
+                        findings_data.append(['Top Velocity Category', findings['top_velocity_category']])
+                    if findings.get('critical_abc_fms_classes'):
+                        critical_classes = ', '.join(findings['critical_abc_fms_classes'])
+                        findings_data.append(['Critical ABC-FMS Classes', critical_classes])
+                    
+                    if findings_data:
+                        findings_df = pd.DataFrame(findings_data, columns=['Finding', 'Value'])
+                        self._add_data_table(doc, "Key Performance Findings", findings_df, max_rows=3)
+            
+            doc.add_page_break()
 
 
 def generate_word_report(analysis_results: Dict, 
