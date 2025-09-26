@@ -71,7 +71,7 @@ class EnhancedWarehouseAnalysisPipeline:
             run_advanced_analysis: Whether to run advanced analysis modules
         """
         self.generate_charts = generate_charts
-        self.generate_advanced_charts = generate_advanced_charts
+        self.enable_advanced_charts = generate_advanced_charts
         self.generate_llm_summaries = generate_llm_summaries
         self.generate_html_report = generate_html_report
         self.generate_word_report = generate_word_report
@@ -231,7 +231,7 @@ class EnhancedWarehouseAnalysisPipeline:
         Returns:
             Dictionary of chart file paths
         """
-        if not self.generate_advanced_charts or not self.advanced_chart_generator:
+        if not self.enable_advanced_charts or not self.advanced_chart_generator:
             return {}
         
         self.logger.info("Generating advanced charts")
@@ -281,23 +281,65 @@ class EnhancedWarehouseAnalysisPipeline:
             
             # 6. Enhanced Multi-Line Order Trend Chart (for Word reports)
             if 'date_order_summary' in basic_results:
+                self.logger.info(f"📊 Found date_order_summary with shape: {basic_results['date_order_summary'].shape}")
                 chart_path = self.advanced_chart_generator.create_enhanced_order_trend_chart(
                     basic_results['date_order_summary']
                 )
                 if chart_path:
                     chart_paths['enhanced_order_trend'] = chart_path
+                    self.logger.info(f"✅ Enhanced order trend chart saved to: {chart_path}")
+                else:
+                    self.logger.warning("❌ Enhanced order trend chart generation returned empty path")
+            else:
+                self.logger.warning("❌ date_order_summary not found in basic results for enhanced trend chart")
+                self.logger.info(f"Available basic result keys: {list(basic_results.keys())}")
             
             # 7. SKU Profile 2D Classification Chart (for Word reports)
             # Combine basic and advanced results for comprehensive data
             combined_data = {**basic_results, **advanced_results}
+            self.logger.info(f"📊 Combined data keys for 2D classification: {list(combined_data.keys())}")
+            
             chart_path = self.advanced_chart_generator.create_sku_profile_2d_classification_chart(combined_data)
             if chart_path:
                 chart_paths['sku_profile_2d_classification'] = chart_path
+                self.logger.info(f"✅ SKU 2D classification chart saved to: {chart_path}")
+            else:
+                self.logger.warning("❌ SKU 2D classification chart generation returned empty path")
             
             self.logger.info(f"Generated {len(chart_paths)} advanced charts")
             
         except Exception as e:
             self.logger.error(f"Error generating advanced charts: {str(e)}")
+        
+        return chart_paths
+    
+    def generate_advanced_charts(self, basic_results: Dict[str, Any], 
+                               advanced_results: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Public method to generate advanced charts for web integration.
+        
+        Args:
+            basic_results: Results from basic analysis
+            advanced_results: Results from advanced analysis
+            
+        Returns:
+            Dictionary of chart file paths
+        """
+        self.logger.info("Generating advanced charts via public method for web integration")
+        
+        # Call the existing private method
+        chart_paths = self._generate_advanced_charts(basic_results, advanced_results)
+        
+        # Add detailed logging for debugging
+        if chart_paths:
+            self.logger.info(f"Successfully generated {len(chart_paths)} advanced charts:")
+            for chart_name, chart_path in chart_paths.items():
+                chart_file = Path(chart_path)
+                exists = chart_file.exists()
+                file_size = chart_file.stat().st_size if exists else 0
+                self.logger.info(f"  - {chart_name}: {chart_path} (exists: {exists}, size: {file_size} bytes)")
+        else:
+            self.logger.warning("No advanced charts were generated")
         
         return chart_paths
     
@@ -335,7 +377,7 @@ class EnhancedWarehouseAnalysisPipeline:
         
         # Generate advanced charts
         advanced_chart_paths = {}
-        if self.generate_advanced_charts and self.advanced_chart_generator:
+        if self.enable_advanced_charts and self.advanced_chart_generator:
             advanced_chart_paths = self._generate_advanced_charts(basic_results, advanced_results)
         if advanced_chart_paths:
             combined_results['advanced_chart_paths'] = advanced_chart_paths
