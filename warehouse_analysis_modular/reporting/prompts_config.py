@@ -151,6 +151,28 @@ CHART_INSIGHT_PROMPTS = {
         
         Use only actual classification data from provided facts. Bold all real percentages and patterns. No placeholders.''',
         'context': 'ABC-FMS Cross-Classification Analysis'
+    },
+    
+    'enhanced_order_trend_profile': {
+        'instruction': '''Provide exactly 3 bullets using actual multi-metric trend data from facts:
+        
+        • **Multi-Metric Correlation**: Use calculated correlation between volume, lines, customers, shipments from real data
+        • **Demand Synchronization**: Analyze peak alignment patterns across all metrics using actual peak ratios
+        • **Operational Complexity**: Key insight about order complexity trends using real metric relationships
+        
+        Use only actual data from provided facts. Bold all real correlation coefficients and peak ratios. No placeholders.''',
+        'context': 'Enhanced Order Profile Trend Analysis'
+    },
+    
+    'sku_profile_2d_classification': {
+        'instruction': '''Provide exactly 3 bullets using actual SKU 2D classification data from facts:
+        
+        • **Concentration Analysis**: Use actual percentages showing SKU count vs Volume vs Lines contribution from data
+        • **AF Class Impact**: Analyze critical fast-moving A-class items percentage contribution using real numbers
+        • **Strategic Slotting**: Key insight about warehouse slotting priorities using actual classification distribution
+        
+        Use only actual percentages from provided facts. Bold all real SKU%, Volume%, Lines% ratios. No placeholders.''',
+        'context': 'SKU Profile 2D Classification Analysis'
     }
 }
 

@@ -31,11 +31,11 @@
 <body>
   <header>
     <h1>Order Profiles Analysis</h1>
-    <div class="muted">Generated: 2025-09-24T14:12:50.796881</div>
+    <div class="muted">Generated: 2025-09-26T14:18:33.534021</div>
     <div style="margin-top:10px;">
-      <span class="kpi">Dates analyzed: 79</span>
-      <span class="kpi">Unique SKUs: 890</span>
-      <span class="kpi">Order lines: 123307</span>
+      <span class="kpi">Dates analyzed: 0</span>
+      <span class="kpi">Unique SKUs: 0</span>
+      <span class="kpi">Order lines: 0</span>
     </div>
   </header>
 
@@ -52,10 +52,10 @@
   
   <section>
     <div class="section-summary">
-      This report summarizes the analysis of 79 days of sales data, encompassing 890 unique SKUs and 123,307 order lines, representing a total case equivalent of 883,465. This dataset provides a comprehensive view of recent sales performance.
+      This report provides a high-level overview of a dataset generated on September 26, 2025. The data contains no information regarding dates analyzed, unique SKUs, or order lines, indicating a potentially incomplete or initial stage dataset. This lack of data limits immediate insights into sales performance and product trends, requiring further data acquisition and processing.
 
-*   Focus areas for operational improvement may include inventory management of the 890 SKUs.
-*   The large number of order lines (123,307) suggests opportunities to optimize order fulfillment processes.
+*   Action: Investigate data source to identify cause of missing information.
+*   Action: Implement data gathering and processing steps to populate dataset.
 
     </div>
   </section>
@@ -65,38 +65,41 @@
     <h2>1. Date Profile</h2>
     
     <div class="section-summary">
-      Okay, here's a brief analysis and recommendations based on the provided Date Profile data:
+      Okay, here's a brief analysis and recommendations based on the provided date profile:
 
 **Analysis:**
 
-*   **Defined Period:** The data covers a 3-month period from February 1st to April 30th, 2025.
-*   **Significant Spikes in Late March:** The peak dates clearly indicate a surge in volume concentrated around late March (March 25th - 28th).  The volumes on these days are significantly higher than the average.  March 28th stands out as the absolute peak.
-*   **High Average Daily Volume:** An average daily volume of 11,183 suggests a consistent level of activity throughout the period.
-*   **Noticeable Volatility:** The 95th percentile volume (17,536) is considerably higher than the average (11,183). This highlights a significant degree of volatility in daily volume, with some days experiencing substantially higher activity. This is further confirmed by the peak dates.
+*   **Defined Period:** Data covers a 3-month period from February 1st to April 30th, 2025.
+*   **Significant Peak:** Late March (specifically March 25th-28th) experiences significantly higher volume than the average daily volume.  March 28th is a clear outlier with a volume substantially above even the 95th percentile.
+*   **Volume Variability:**  The difference between the average daily volume (11,183) and the 95th percentile volume (17,536) indicates significant day-to-day variability.  There are days where the volume is considerably higher than the average.
+*   **Potential Seasonality/Event:** The concentrated peaks in late March suggest a possible seasonal effect, a specific event (holiday, promotion, release), or a series of related occurrences driving the increase in volume during that time.
 
 **Recommendations:**
 
-1.  **Investigate the Late March Spike:**  The primary focus should be to understand the *reason* for the dramatic increase in volume during late March.  Ask:
-    *   Was there a specific marketing campaign or promotion running at this time?
-    *   Was there an external event (e.g., holiday, major industry announcement) that might have driven the surge?
-    *   Was there an internal system change or error that could have affected the data?
-    *   Were there any specific items or categories responsible for the surge?
+1.  **Investigate Peak Drivers:**  The most critical action is to understand *why* the late March dates (especially March 28th) have such high volume. Possible causes to investigate include:
+    *   **Marketing Campaigns:** Were there any specific campaigns or promotions running around these dates?
+    *   **External Events:** Were there any holidays, sporting events, news events, or other external factors that could have driven volume?
+    *   **Product Launches/Updates:** Were there any new product launches, updates, or features released around this time?
+    *   **Internal Factors:** Were there process changes, system outages, or other internal factors affecting volume?
+    *   **Cohort Analysis:** Is there a specific cohort of users driving the volume?
 
-2.  **Prepare for Similar Peaks:**  Assuming the late March spike is a recurring or predictable event, prepare resources and infrastructure accordingly. This may involve:
-    *   Increased staffing levels.
-    *   Enhanced system capacity (servers, bandwidth).
-    *   Optimized processing workflows to handle the increased load.
-    *   Pre-emptive inventory management if applicable.
+2.  **Capacity Planning:**  Ensure sufficient resources are available to handle peak volumes, especially around the late March period. This could involve:
+    *   **Staffing:**  Adjust staffing levels to match anticipated demand.
+    *   **Infrastructure:**  Ensure systems have the capacity to handle peak loads without performance degradation.
+    *   **Inventory/Supply Chain:** If applicable, optimize inventory and supply chain to meet potential surges in demand.
 
-3.  **Analyze Off-Peak Days:**  To better understand the overall pattern, analyze days with significantly lower volume than the average. Identify factors that might contribute to low-volume days.
+3.  **Forecasting & Modeling:**  Utilize the historical data to improve forecasting models.
+    *   Account for the identified peaks and their potential causes when predicting future volume.
+    *   Consider incorporating seasonality and event-based triggers into the models.
+    *   Use the 95th percentile to plan for the upper end of the expected volume range.
 
-4.  **Monitor Key Metrics Closely:**  During periods of high volume, closely monitor key performance indicators (KPIs) such as:
-    *   Response times
-    *   Error rates
-    *   Processing times
-    *   System resource utilization
+4.  **Monitor Performance:**  Closely monitor performance during peak periods to identify and address any bottlenecks or issues.  Track key metrics like response times, error rates, and customer satisfaction.
 
-5.  **Refine Forecasting Models:**  Incorporate the observed seasonality and peak events into future forecasting models. This will improve the accuracy of predictions and enable better resource planning.
+5.  **Contingency Planning:** Develop contingency plans to handle unexpected spikes in volume that exceed even the planned capacity. This could include measures like load shedding, throttling, or temporarily disabling non-critical features.
+
+6. **Data Granularity:** If possible, increase the granularity of the data for further analysis. Hourly or even more frequent data points could reveal patterns within the day that are not apparent at the daily level.
+
+By understanding the drivers of the peak volumes and implementing appropriate planning and monitoring measures, you can optimize operations and provide a better experience during periods of high demand.
 
     </div>
     
@@ -123,11 +126,6 @@
       <th>Qty_Ordered_Eaches</th>
       <th>Total_Case_Equiv</th>
       <th>Total_Pallet_Equiv</th>
-      <th>Total_Touches</th>
-      <th>Touch_Time_Min</th>
-      <th>Walk_Time_Min</th>
-      <th>Total_Time_Min</th>
-      <th>FTE_Required</th>
       <th>DayOfWeek</th>
     </tr>
   </thead>
@@ -142,11 +140,6 @@
       <td>4820.00</td>
       <td>4932.99</td>
       <td>1956.92</td>
-      <td>9748.00</td>
-      <td>1657.16</td>
-      <td>978.46</td>
-      <td>2635.62</td>
-      <td>7</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -159,11 +152,6 @@
       <td>46241.01</td>
       <td>10711.49</td>
       <td>2500.33</td>
-      <td>56898.01</td>
-      <td>9672.66</td>
-      <td>1250.17</td>
-      <td>10922.83</td>
-      <td>28</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -176,11 +164,6 @@
       <td>52752.00</td>
       <td>11247.99</td>
       <td>2808.32</td>
-      <td>63945.00</td>
-      <td>10870.65</td>
-      <td>1404.16</td>
-      <td>12274.81</td>
-      <td>32</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -193,11 +176,6 @@
       <td>38775.50</td>
       <td>12260.64</td>
       <td>3670.00</td>
-      <td>50993.50</td>
-      <td>8668.90</td>
-      <td>1835.00</td>
-      <td>10503.90</td>
-      <td>27</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -210,11 +188,6 @@
       <td>37684.00</td>
       <td>11842.66</td>
       <td>3581.32</td>
-      <td>49487.00</td>
-      <td>8412.79</td>
-      <td>1790.66</td>
-      <td>10203.45</td>
-      <td>27</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -227,11 +200,6 @@
       <td>46286.00</td>
       <td>12396.31</td>
       <td>3748.35</td>
-      <td>58636.00</td>
-      <td>9968.12</td>
-      <td>1874.18</td>
-      <td>11842.30</td>
-      <td>31</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -244,11 +212,6 @@
       <td>44133.00</td>
       <td>10613.00</td>
       <td>3448.64</td>
-      <td>54701.00</td>
-      <td>9299.17</td>
-      <td>1724.32</td>
-      <td>11023.49</td>
-      <td>29</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -261,11 +224,6 @@
       <td>44000.00</td>
       <td>14054.09</td>
       <td>4486.03</td>
-      <td>58009.00</td>
-      <td>9861.53</td>
-      <td>2243.02</td>
-      <td>12104.55</td>
-      <td>32</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -278,11 +236,6 @@
       <td>47560.00</td>
       <td>15600.31</td>
       <td>4991.66</td>
-      <td>63113.00</td>
-      <td>10729.21</td>
-      <td>2495.83</td>
-      <td>13225.04</td>
-      <td>34</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -295,11 +248,6 @@
       <td>46416.00</td>
       <td>14803.63</td>
       <td>4050.17</td>
-      <td>61168.00</td>
-      <td>10398.56</td>
-      <td>2025.09</td>
-      <td>12423.65</td>
-      <td>32</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -312,11 +260,6 @@
       <td>43317.99</td>
       <td>12163.04</td>
       <td>3143.18</td>
-      <td>55435.99</td>
-      <td>9424.12</td>
-      <td>1571.59</td>
-      <td>10995.71</td>
-      <td>29</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -329,11 +272,6 @@
       <td>68555.00</td>
       <td>15012.58</td>
       <td>5005.14</td>
-      <td>83502.00</td>
-      <td>14195.34</td>
-      <td>2502.57</td>
-      <td>16697.91</td>
-      <td>43</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -346,11 +284,6 @@
       <td>36864.82</td>
       <td>10502.18</td>
       <td>3607.37</td>
-      <td>47329.82</td>
-      <td>8046.07</td>
-      <td>1803.68</td>
-      <td>9849.75</td>
-      <td>26</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -363,11 +296,6 @@
       <td>44282.00</td>
       <td>11357.58</td>
       <td>3015.49</td>
-      <td>55593.00</td>
-      <td>9450.81</td>
-      <td>1507.74</td>
-      <td>10958.55</td>
-      <td>29</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -380,11 +308,6 @@
       <td>48768.00</td>
       <td>13412.70</td>
       <td>3985.87</td>
-      <td>62129.00</td>
-      <td>10561.93</td>
-      <td>1992.93</td>
-      <td>12554.86</td>
-      <td>33</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -397,11 +320,6 @@
       <td>49606.96</td>
       <td>11915.40</td>
       <td>3808.71</td>
-      <td>61465.96</td>
-      <td>10449.21</td>
-      <td>1904.35</td>
-      <td>12353.57</td>
-      <td>32</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -414,11 +332,6 @@
       <td>41078.00</td>
       <td>10467.07</td>
       <td>3187.31</td>
-      <td>51496.00</td>
-      <td>8754.32</td>
-      <td>1593.65</td>
-      <td>10347.97</td>
-      <td>27</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -431,11 +344,6 @@
       <td>57575.99</td>
       <td>12505.38</td>
       <td>2948.58</td>
-      <td>70022.99</td>
-      <td>11903.91</td>
-      <td>1474.29</td>
-      <td>13378.20</td>
-      <td>35</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -448,11 +356,6 @@
       <td>46486.58</td>
       <td>9502.61</td>
       <td>3519.42</td>
-      <td>55942.58</td>
-      <td>9510.24</td>
-      <td>1759.71</td>
-      <td>11269.95</td>
-      <td>29</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -465,11 +368,6 @@
       <td>30887.44</td>
       <td>9717.42</td>
       <td>2508.22</td>
-      <td>40569.44</td>
-      <td>6896.80</td>
-      <td>1254.11</td>
-      <td>8150.92</td>
-      <td>21</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -482,11 +380,6 @@
       <td>77082.55</td>
       <td>17271.07</td>
       <td>4904.04</td>
-      <td>94275.55</td>
-      <td>16026.84</td>
-      <td>2452.02</td>
-      <td>18478.86</td>
-      <td>48</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -499,11 +392,6 @@
       <td>3956.00</td>
       <td>1390.70</td>
       <td>573.78</td>
-      <td>5342.00</td>
-      <td>908.14</td>
-      <td>286.89</td>
-      <td>1195.03</td>
-      <td>3</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -516,11 +404,6 @@
       <td>48752.94</td>
       <td>14339.87</td>
       <td>4356.73</td>
-      <td>63039.94</td>
-      <td>10716.79</td>
-      <td>2178.36</td>
-      <td>12895.15</td>
-      <td>34</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -533,11 +416,6 @@
       <td>39788.94</td>
       <td>13449.95</td>
       <td>4129.45</td>
-      <td>53195.94</td>
-      <td>9043.31</td>
-      <td>2064.73</td>
-      <td>11108.03</td>
-      <td>29</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -550,11 +428,6 @@
       <td>45897.93</td>
       <td>6515.43</td>
       <td>3465.93</td>
-      <td>52339.93</td>
-      <td>8897.79</td>
-      <td>1732.96</td>
-      <td>10630.75</td>
-      <td>28</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -567,11 +440,6 @@
       <td>40946.63</td>
       <td>12302.18</td>
       <td>3772.65</td>
-      <td>53173.63</td>
-      <td>9039.52</td>
-      <td>1886.33</td>
-      <td>10925.84</td>
-      <td>28</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -584,11 +452,6 @@
       <td>66798.59</td>
       <td>16827.00</td>
       <td>7216.81</td>
-      <td>83516.59</td>
-      <td>14197.82</td>
-      <td>3608.41</td>
-      <td>17806.23</td>
-      <td>46</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -601,11 +464,6 @@
       <td>37305.15</td>
       <td>13090.80</td>
       <td>4464.81</td>
-      <td>50306.15</td>
-      <td>8552.05</td>
-      <td>2232.41</td>
-      <td>10784.45</td>
-      <td>28</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -618,11 +476,6 @@
       <td>47365.30</td>
       <td>12372.27</td>
       <td>4560.44</td>
-      <td>59642.30</td>
-      <td>10139.19</td>
-      <td>2280.22</td>
-      <td>12419.41</td>
-      <td>32</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -635,11 +488,6 @@
       <td>57504.54</td>
       <td>14922.86</td>
       <td>5524.24</td>
-      <td>72310.54</td>
-      <td>12292.79</td>
-      <td>2762.12</td>
-      <td>15054.91</td>
-      <td>39</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -652,11 +500,6 @@
       <td>36151.51</td>
       <td>12120.46</td>
       <td>5385.95</td>
-      <td>48198.51</td>
-      <td>8193.75</td>
-      <td>2692.98</td>
-      <td>10886.72</td>
-      <td>28</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -669,11 +512,6 @@
       <td>43226.13</td>
       <td>14504.20</td>
       <td>5360.67</td>
-      <td>57643.13</td>
-      <td>9799.33</td>
-      <td>2680.33</td>
-      <td>12479.67</td>
-      <td>32</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -686,11 +524,6 @@
       <td>55679.84</td>
       <td>17519.73</td>
       <td>7558.84</td>
-      <td>73078.84</td>
-      <td>12423.40</td>
-      <td>3779.42</td>
-      <td>16202.82</td>
-      <td>42</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -703,11 +536,6 @@
       <td>31505.34</td>
       <td>8340.43</td>
       <td>3370.86</td>
-      <td>39790.34</td>
-      <td>6764.36</td>
-      <td>1685.43</td>
-      <td>8449.79</td>
-      <td>22</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -720,11 +548,6 @@
       <td>60498.06</td>
       <td>14994.55</td>
       <td>3877.62</td>
-      <td>75377.06</td>
-      <td>12814.10</td>
-      <td>1938.81</td>
-      <td>14752.91</td>
-      <td>38</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -737,11 +560,6 @@
       <td>31929.94</td>
       <td>8746.03</td>
       <td>2998.60</td>
-      <td>40619.94</td>
-      <td>6905.39</td>
-      <td>1499.30</td>
-      <td>8404.69</td>
-      <td>22</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -754,11 +572,6 @@
       <td>1962.01</td>
       <td>358.34</td>
       <td>68.75</td>
-      <td>2314.01</td>
-      <td>393.38</td>
-      <td>34.37</td>
-      <td>427.76</td>
-      <td>1</td>
       <td>Sunday</td>
     </tr>
     <tr>
@@ -771,11 +584,6 @@
       <td>41410.00</td>
       <td>12856.43</td>
       <td>3352.69</td>
-      <td>54222.00</td>
-      <td>9217.74</td>
-      <td>1676.35</td>
-      <td>10894.09</td>
-      <td>28</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -788,11 +596,6 @@
       <td>59562.01</td>
       <td>15110.75</td>
       <td>4240.44</td>
-      <td>74608.01</td>
-      <td>12683.36</td>
-      <td>2120.22</td>
-      <td>14803.58</td>
-      <td>39</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -805,11 +608,6 @@
       <td>39690.00</td>
       <td>9010.31</td>
       <td>2694.95</td>
-      <td>48661.00</td>
-      <td>8272.37</td>
-      <td>1347.47</td>
-      <td>9619.84</td>
-      <td>25</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -822,11 +620,6 @@
       <td>28471.00</td>
       <td>11316.41</td>
       <td>3407.62</td>
-      <td>39756.00</td>
-      <td>6758.52</td>
-      <td>1703.81</td>
-      <td>8462.33</td>
-      <td>22</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -839,11 +632,6 @@
       <td>67972.00</td>
       <td>17684.74</td>
       <td>5627.53</td>
-      <td>85588.00</td>
-      <td>14549.96</td>
-      <td>2813.76</td>
-      <td>17363.72</td>
-      <td>45</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -856,11 +644,6 @@
       <td>49654.21</td>
       <td>10976.04</td>
       <td>3746.47</td>
-      <td>60579.21</td>
-      <td>10298.47</td>
-      <td>1873.23</td>
-      <td>12171.70</td>
-      <td>32</td>
       <td>Saturday</td>
     </tr>
     <tr>
@@ -873,11 +656,6 @@
       <td>0.00</td>
       <td>285.00</td>
       <td>73.14</td>
-      <td>285.00</td>
-      <td>48.45</td>
-      <td>36.57</td>
-      <td>85.02</td>
-      <td>0</td>
       <td>Sunday</td>
     </tr>
     <tr>
@@ -890,11 +668,6 @@
       <td>53506.23</td>
       <td>15108.36</td>
       <td>4133.89</td>
-      <td>68551.23</td>
-      <td>11653.71</td>
-      <td>2066.95</td>
-      <td>13720.66</td>
-      <td>36</td>
       <td>Monday</td>
     </tr>
     <tr>
@@ -907,11 +680,6 @@
       <td>77838.55</td>
       <td>19119.70</td>
       <td>7041.45</td>
-      <td>96876.55</td>
-      <td>16469.01</td>
-      <td>3520.72</td>
-      <td>19989.74</td>
-      <td>52</td>
       <td>Tuesday</td>
     </tr>
     <tr>
@@ -924,11 +692,6 @@
       <td>53496.00</td>
       <td>11439.06</td>
       <td>3518.17</td>
-      <td>64879.00</td>
-      <td>11029.43</td>
-      <td>1759.09</td>
-      <td>12788.52</td>
-      <td>33</td>
       <td>Wednesday</td>
     </tr>
     <tr>
@@ -941,11 +704,6 @@
       <td>65268.56</td>
       <td>18607.89</td>
       <td>6220.68</td>
-      <td>83803.56</td>
-      <td>14246.60</td>
-      <td>3110.34</td>
-      <td>17356.95</td>
-      <td>45</td>
       <td>Thursday</td>
     </tr>
     <tr>
@@ -958,11 +716,6 @@
       <td>53272.11</td>
       <td>20206.39</td>
       <td>9031.35</td>
-      <td>73421.11</td>
-      <td>12481.59</td>
-      <td>4515.67</td>
-      <td>16997.26</td>
-      <td>44</td>
       <td>Friday</td>
     </tr>
     <tr>
@@ -975,11 +728,6 @@
       <td>22053.00</td>
       <td>15530.80</td>
       <td>5208.64</td>
-      <td>37558.00</td>
-      <td>6384.86</td>
-      <td>2604.32</td>
-      <td>8989.18</td>
-      <td>23</td>
       <td>Saturday</td>
     </tr>
   </tbody>
@@ -989,7 +737,13 @@
   <section id="percentile">
     <h2>2. Percentile Summary</h2>
     
-    <div class="section-summary">These percentiles indicate that while the average capacity needed is around 11183, a significant portion of the load exceeds this. To handle 95% of the observed peak load, capacity should be provisioned to at least 17536. Planning for the 90th percentile (15545) would cover most peak events, while the 85th percentile (15000) may result in occasional performance degradation for a small fraction of users during peak times.
+    <div class="section-summary">Here are 3 bullets addressing the requested points:
+
+*   **Capacity Spread**: The **95**th percentile capacity is **17536**, reflecting a significant increase from the **50**th percentile of **0**.
+
+*   **Peak Planning**: Infrastructure should be sized to at least the **95**th percentile of **17536**, with a peak buffer of **15%** above that to accommodate expected maximum demands.
+
+*   **Operational Buffer**: The operational range between the **75**th (**0**) and **50**th (**0**) percentiles indicates minimal capacity usage within this range.
 </div>
     
     
@@ -1074,43 +828,11 @@
   <section id="sku">
     <h2>3. SKU Profile</h2>
     
-    <div class="section-summary">Okay, here's a brief analysis and some recommendations based on the provided SKU profile data:
+    <div class="section-summary">Here are 3 bullets highlighting SKU distribution insights based on the provided data:
 
-**Analysis:**
-
-This data indicates a significant concentration of sales volume within a very small percentage of the total SKU portfolio.  Out of 890 SKUs, just the top 5 account for a large portion of the overall volume (we can't calculate the exact percentage without total volume data, but it's clearly a substantial amount). This is a common scenario, often referred to as the Pareto Principle (the 80/20 rule).  It suggests some products are significantly more popular and/or effectively marketed than others.
-
-**Recommendations:**
-
-1.  **Deep Dive into Top Performers:**
-    *   **Understand the "Why":**  Investigate *why* these top 5 SKUs are performing so well. Is it pricing, marketing efforts, availability, customer reviews, shelf placement, or inherent product superiority? Understanding the drivers behind their success is crucial.
-    *   **Maximize Availability:** Ensure these SKUs are always in stock and readily available. Stockouts on these items will have a disproportionately negative impact on overall sales.
-    *   **Protect and Promote:**  Actively promote and protect these top performers. Monitor competitor activity related to these SKUs.
-
-2.  **Analyze the Rest of the Portfolio:**
-    *   **Segment the Remaining SKUs:**  Categorize the remaining 885 SKUs (890 - 5) based on volume, profit margin, growth potential, and strategic importance. This will allow for tailored strategies for different groups.  Consider categories like:
-        *   **High Potential/Rising Stars:**  SKUs with lower current volume but good growth trajectory.
-        *   **Niche Products:** SKUs that cater to a specific customer segment and contribute to overall portfolio diversity.
-        *   **Slow Movers/Laggards:** SKUs with consistently low volume and little potential for growth.
-    *   **Identify Underperformers:**  Specifically identify SKUs that are consistently underperforming and have low or negative profit margins.
-
-3.  **Take Action on Underperformers:**
-    *   **Improve Performance:**  For some underperformers, explore ways to improve their performance through:
-        *   **Pricing Adjustments:**  Experiment with pricing strategies to increase sales volume.
-        *   **Marketing Initiatives:**  Implement targeted marketing campaigns to increase awareness.
-        *   **Packaging/Presentation Changes:**  Revamp the packaging or presentation to make the product more appealing.
-        *   **Product Enhancements:**  Consider making minor improvements to the product itself based on customer feedback.
-    *   **Consider Discontinuation:** For the worst-performing SKUs, carefully consider whether to discontinue them.  This will free up resources (inventory space, marketing focus) that can be reallocated to higher-performing products.
-
-4.  **Inventory Management:**
-    *   **Optimize Inventory Levels:**  Use the sales data to optimize inventory levels for all SKUs. This will help reduce holding costs and minimize the risk of stockouts.
-    *   **ABC Analysis:**  Consider using an ABC inventory analysis to categorize SKUs based on their value and prioritize inventory management efforts.
-
-5.  **Monitor and Iterate:**
-    *   **Track Performance:** Continuously monitor the performance of all SKUs.
-    *   **Adjust Strategies:** Be prepared to adjust your strategies based on the data.
-
-In summary, focus on maximizing the potential of your top performers, strategically manage the rest of your portfolio, and don't be afraid to cut dead weight.  A more detailed analysis would require additional data points (e.g., profit margins, costs, product categories, marketing spend).
+*   **Pareto Analysis**: **6%** of the **890** SKUs account for **80%** of the total volume processed.
+*   **Top Concentration**: The top **10%** of SKUs control **88%** of the total volume.
+*   **Distribution Pattern**: The top SKU volume of **74706** is **75.3x** the average SKU volume of **993**, highlighting a highly uneven distribution pattern.
 </div>
     
     
@@ -1382,34 +1104,11 @@ In summary, focus on maximizing the potential of your top performers, strategica
   <section id="abc_fms">
     <h2>4. SKU ABC & FMS</h2>
     
-    <div class="section-summary">## ABC-FMS Analysis & Recommendations
+    <div class="section-summary">Here are 3 bullets based on the provided ABC-FMS classification analysis:
 
-**Analysis:**
-
-*   **Dominant A Category:** Category A dominates in volume, accounting for the majority of the total volume (617,155.12 out of a total of roughly 883,465).
-*   **Category Breakdown:**  While Category A has the highest volume, Categories B and C contribute significantly as well. B contributes 177,374.8, and C contributes 88,935.38.
-*   **SKU Performance within Categories:** The cross-tab data highlights the breakdown of SKUs and their corresponding volumes within categories A and B, split by F, M, and S designations. This detailed view allows for performance assessment at a granular level.
-*   **Line Item Distribution:** The cross-tab data reveals the distribution of line items (orders) across different SKU types (F, M, S) within categories A and B. This provides insights into the operational impact of each category and SKU type.
-*   **Potential Inefficiencies:** The cross-tab data shows a disproportionate relationship between the number of SKUs and the volume they generate. For example, in category B, 'SKU_F' represents a large portion of total SKUs in that category, but only contribute 14% of the total volume.
-
-**Recommendations:**
-
-1.  **Focus on A Category Optimization:** Given the dominance of category A in volume, prioritize strategies to optimize its performance.
-    *   **Demand Forecasting and Inventory Management:** Implement robust demand forecasting and inventory management practices to ensure sufficient stock levels for Category A SKUs while minimizing holding costs.
-    *   **Operational Efficiency:** Streamline processes related to Category A SKUs, such as order fulfillment and logistics, to improve efficiency and reduce costs.
-
-2.  **Improve B & C Category Performance:** Identify ways to improve the performance of B and C categories.
-    *   **SKU Rationalization:** Analyze the contribution of each SKU within Category B and C. Consider rationalizing the SKU assortment by removing underperforming SKUs to reduce complexity and focus on high-potential items.
-    *   **Pricing and Promotion:** Explore opportunities to optimize pricing strategies and implement targeted promotions to drive volume growth in B and C categories.
-
-3.  **Analyze F, M, S SKU Performance:** Deep dive into the performance of F, M, and S SKUs within each category.
-    *   **Focus on "F" SKU performance in Category B**: Focus on the operational inefficiencies in category B where 'SKU_F' represents a large portion of total SKUs in that category, but only contribute 14% of the total volume.
-    *   **Inventory and Logistics:** Evaluate inventory levels and logistics processes for each SKU type. Optimize inventory levels based on demand patterns and lead times, and explore opportunities to improve logistics efficiency.
-
-4.  **Investigate Line Item Discrepancies:** The percentages for Line items appear to be mislabeled. For example, Line_F_pct for category A is 31%. This is not the actual percentage of Line_F compared to Line_Total. The cross-tab data is showing the volume percentage.
-    *   **Verify and Correct Data:** Ensure the accuracy of the data used for analysis. Verify the calculations and identify any errors.
-
-By implementing these recommendations, ABC-FMS can optimize its operations, improve efficiency, and drive overall business growth.
+*   **ABC Distribution**: The analysis reveals an even distribution across ABC classes, with class A accounting for **33%**, class B for **33%**, and class C for **33%** of items.
+*   **Movement Patterns**: The FMS classification analysis shows no discernible movement patterns, with Fast, Medium, and Slow classifications being Not Applicable (N/A).
+*   **Classification Insight**: The effectiveness of the FMS classification cannot be assessed since all items are classified as N/A, highlighting a gap in the analysis of movement patterns.
 </div>
     
     
@@ -1434,6 +1133,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <th>Distinct_Movement_Days</th>
       <th>FMS_Period_Pct</th>
       <th>Orders_per_Movement_Day</th>
+      <th>Combined_Class</th>
     </tr>
   </thead>
   <tbody>
@@ -1451,6 +1151,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>51</td>
       <td>64.56</td>
       <td>2.20</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>1153</td>
@@ -1466,6 +1167,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>77</td>
       <td>97.47</td>
       <td>27.61</td>
+      <td>AF</td>
     </tr>
     <tr>
       <td>1207</td>
@@ -1481,6 +1183,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>65</td>
       <td>82.28</td>
       <td>12.75</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>1216</td>
@@ -1496,6 +1199,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>70</td>
       <td>88.61</td>
       <td>2.74</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>1403</td>
@@ -1511,6 +1215,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>24</td>
       <td>30.38</td>
       <td>1.42</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>1496</td>
@@ -1526,6 +1231,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>75</td>
       <td>94.94</td>
       <td>13.81</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>1740</td>
@@ -1541,6 +1247,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>76</td>
       <td>96.20</td>
       <td>23.53</td>
+      <td>AF</td>
     </tr>
     <tr>
       <td>1748</td>
@@ -1556,6 +1263,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>42</td>
       <td>53.16</td>
       <td>1.76</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3014</td>
@@ -1571,6 +1279,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>24</td>
       <td>30.38</td>
       <td>1.58</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3025</td>
@@ -1586,6 +1295,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>76</td>
       <td>96.20</td>
       <td>15.93</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3037</td>
@@ -1601,6 +1311,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>1</td>
       <td>1.27</td>
       <td>1.00</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3041</td>
@@ -1616,6 +1327,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>56</td>
       <td>70.89</td>
       <td>6.30</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3043</td>
@@ -1631,6 +1343,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>73</td>
       <td>92.41</td>
       <td>6.81</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3045</td>
@@ -1646,6 +1359,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>56</td>
       <td>70.89</td>
       <td>3.05</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3047</td>
@@ -1661,6 +1375,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>35</td>
       <td>44.30</td>
       <td>1.91</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3049</td>
@@ -1676,6 +1391,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>77</td>
       <td>97.47</td>
       <td>15.35</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3054</td>
@@ -1691,6 +1407,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>76</td>
       <td>96.20</td>
       <td>10.88</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3055</td>
@@ -1706,6 +1423,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>70</td>
       <td>88.61</td>
       <td>11.01</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3063</td>
@@ -1721,6 +1439,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>62</td>
       <td>78.48</td>
       <td>2.45</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3073</td>
@@ -1736,6 +1455,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>57</td>
       <td>72.15</td>
       <td>1.88</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3079</td>
@@ -1751,6 +1471,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>77</td>
       <td>97.47</td>
       <td>19.10</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3081</td>
@@ -1766,6 +1487,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>70</td>
       <td>88.61</td>
       <td>3.49</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3371</td>
@@ -1781,6 +1503,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>74</td>
       <td>93.67</td>
       <td>5.86</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3391</td>
@@ -1796,6 +1519,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>1</td>
       <td>1.27</td>
       <td>1.00</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3392</td>
@@ -1811,6 +1535,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>51</td>
       <td>64.56</td>
       <td>4.24</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3400</td>
@@ -1826,6 +1551,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>73</td>
       <td>92.41</td>
       <td>4.38</td>
+      <td>BM</td>
     </tr>
     <tr>
       <td>3423</td>
@@ -1841,6 +1567,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>64</td>
       <td>81.01</td>
       <td>3.95</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3424</td>
@@ -1856,6 +1583,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>70</td>
       <td>88.61</td>
       <td>2.67</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3425</td>
@@ -1871,6 +1599,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>68</td>
       <td>86.08</td>
       <td>3.37</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3441</td>
@@ -1886,6 +1615,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>71</td>
       <td>89.87</td>
       <td>2.96</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3473</td>
@@ -1901,6 +1631,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>74</td>
       <td>93.67</td>
       <td>4.80</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3483</td>
@@ -1916,6 +1647,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>33</td>
       <td>41.77</td>
       <td>1.27</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3486</td>
@@ -1931,6 +1663,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>54</td>
       <td>68.35</td>
       <td>1.70</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3488</td>
@@ -1946,6 +1679,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>59</td>
       <td>74.68</td>
       <td>2.15</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3503</td>
@@ -1961,6 +1695,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>17</td>
       <td>21.52</td>
       <td>1.06</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3508</td>
@@ -1976,6 +1711,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>16</td>
       <td>20.25</td>
       <td>1.12</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3514</td>
@@ -1991,6 +1727,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>75</td>
       <td>94.94</td>
       <td>18.63</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3521</td>
@@ -2006,6 +1743,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>73</td>
       <td>92.41</td>
       <td>12.79</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3522</td>
@@ -2021,6 +1759,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>11</td>
       <td>13.92</td>
       <td>1.36</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3523</td>
@@ -2036,6 +1775,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>75</td>
       <td>94.94</td>
       <td>13.51</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3573</td>
@@ -2051,6 +1791,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>53</td>
       <td>67.09</td>
       <td>1.75</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3585</td>
@@ -2066,6 +1807,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>77</td>
       <td>97.47</td>
       <td>25.21</td>
+      <td>BF</td>
     </tr>
     <tr>
       <td>3587</td>
@@ -2081,6 +1823,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>72</td>
       <td>91.14</td>
       <td>11.54</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3588</td>
@@ -2096,6 +1839,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>65</td>
       <td>82.28</td>
       <td>10.23</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3589</td>
@@ -2111,6 +1855,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>23</td>
       <td>29.11</td>
       <td>1.74</td>
+      <td>CS</td>
     </tr>
     <tr>
       <td>3607</td>
@@ -2126,6 +1871,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>77</td>
       <td>97.47</td>
       <td>30.81</td>
+      <td>AF</td>
     </tr>
     <tr>
       <td>3611</td>
@@ -2141,6 +1887,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>53</td>
       <td>67.09</td>
       <td>6.79</td>
+      <td>CF</td>
     </tr>
     <tr>
       <td>3612</td>
@@ -2156,6 +1903,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>40</td>
       <td>50.63</td>
       <td>6.80</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3618</td>
@@ -2171,6 +1919,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>53</td>
       <td>67.09</td>
       <td>3.81</td>
+      <td>CM</td>
     </tr>
     <tr>
       <td>3619</td>
@@ -2186,6 +1935,7 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
       <td>1</td>
       <td>1.27</td>
       <td>1.00</td>
+      <td>CS</td>
     </tr>
   </tbody>
 </table><p class="muted small">Showing top 50 rows. Full table available in the Excel workbook.</p></div>
@@ -2316,14 +2066,14 @@ By implementing these recommendations, ABC-FMS can optimize its operations, impr
     </p>
 
     <h3>Metadata</h3>
-    <pre class="mono">{"abc_distribution": {"A": 30, "B": 76, "C": 784}, "dataframe_counts": {"abc_fms_summary": 4, "date_order_summary": 79, "percentile_profile": 5, "sku_order_summary": 890, "sku_profile_abc_fms": 890}, "date_range": {"end": "2025-04-30T00:00:00", "start": "2025-02-01T00:00:00"}, "fms_distribution": {"F": 96, "M": 129, "S": 665}, "generated_on": "2025-09-24T14:12:50.796881", "report_sections": ["Date Profile", "Percentile Summary", "SKU Profile", "ABC-FMS Analysis", "Cross-tabulation Summary"], "total_case_equivalent": 883465.2995963062, "total_dates": 79, "total_order_lines": 123307, "total_skus": 890}</pre>
+    <pre class="mono">{"abc_distribution": {}, "dataframe_counts": {"abc_fms_summary": 4, "date_order_summary": 79, "lines_crosstab": 3, "lines_percentage": 3, "percentile_profile": 5, "sku_count_crosstab": 3, "sku_order_summary": 890, "sku_profile_abc_fms": 890, "volume_crosstab": 3, "volume_percentage": 3}, "date_range": {}, "fms_distribution": {}, "generated_on": "2025-09-26T14:18:33.534021", "report_sections": ["Date Profile", "Percentile Summary", "SKU Profile", "ABC-FMS Analysis", "Cross-tabulation Summary"], "total_case_equivalent": 0, "total_dates": 0, "total_order_lines": 0, "total_skus": 0}</pre>
 
     <h3>Raw tables / downloads</h3>
     <p class="muted small">Full Excel workbook is expected to be alongside this report: <code>Order_Profiles.xlsx</code></p>
   </section>
 
   <footer>
-    Report generated by Warehouse Analysis Modular Tool. <span class="muted">Generated: 2025-09-24T14:12:50.796881</span>
+    Report generated by Warehouse Analysis Modular Tool. <span class="muted">Generated: 2025-09-26T14:18:33.534021</span>
   </footer>
 </body>
 </html>

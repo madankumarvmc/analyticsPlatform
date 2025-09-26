@@ -480,17 +480,23 @@ class WordReportGenerator:
             self._add_data_table(doc, "Daily Operations Summary (Top 3 Peak Days)", 
                                display_date_summary.nlargest(3, 'Total_Case_Equiv'), max_rows=3)
         
-        # Add both charts side by side conceptually (but sequentially due to Word limitations)
-        date_chart_path = self.charts_dir / 'date_total_case_equiv.png'
-        customer_chart_path = self.charts_dir / 'date_distinct_customers.png'
+        # Add enhanced multi-line order trend chart (replaces separate volume and customer charts)
+        enhanced_trend_chart_path = self.charts_dir / 'enhanced_order_trend_profile.png'
         
-        # Add volume chart with compact insights
-        if date_chart_path.exists():
-            self._add_chart_with_insights(doc, 'date_total_case_equiv', date_chart_path, analysis_results)
-        
-        # Add customer chart with compact insights  
-        if customer_chart_path.exists():
-            self._add_chart_with_insights(doc, 'date_distinct_customers', customer_chart_path, analysis_results)
+        if enhanced_trend_chart_path.exists():
+            self._add_chart_with_insights(doc, 'enhanced_order_trend_profile', enhanced_trend_chart_path, analysis_results)
+        else:
+            # Fallback to original charts if enhanced chart is not available
+            date_chart_path = self.charts_dir / 'date_total_case_equiv.png'
+            customer_chart_path = self.charts_dir / 'date_distinct_customers.png'
+            
+            # Add volume chart with compact insights
+            if date_chart_path.exists():
+                self._add_chart_with_insights(doc, 'date_total_case_equiv', date_chart_path, analysis_results)
+            
+            # Add customer chart with compact insights  
+            if customer_chart_path.exists():
+                self._add_chart_with_insights(doc, 'date_distinct_customers', customer_chart_path, analysis_results)
         
         doc.add_page_break()
         
@@ -569,6 +575,11 @@ class WordReportGenerator:
         abc_heatmap_path = self.charts_dir / 'abc_fms_heatmap.png'
         if abc_heatmap_path.exists():
             self._add_chart_with_insights(doc, 'abc_fms_heatmap', abc_heatmap_path, analysis_results)
+        
+        # Add enhanced SKU Profile 2D Classification chart
+        sku_2d_chart_path = self.charts_dir / 'sku_profile_2d_classification.png'
+        if sku_2d_chart_path.exists():
+            self._add_chart_with_insights(doc, 'sku_profile_2d_classification', sku_2d_chart_path, analysis_results)
         
         doc.add_page_break()
         

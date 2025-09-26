@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 from typing import Tuple, Optional, Dict, Any
 import logging
+from datetime import datetime, timedelta
+import io
 
 # Import web config
 import sys
@@ -23,6 +25,78 @@ from config_web import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def create_excel_template() -> bytes:
+    """
+    Create an Excel template with sample data for OrderData and SkuMaster sheets.
+    
+    Returns:
+        bytes: Excel file content as bytes
+    """
+    # Create sample OrderData
+    base_date = datetime(2025, 2, 1)
+    order_data = []
+    
+    # Sample SKU codes and categories
+    sample_skus = [
+        ('SKU001', 'BI'), ('SKU002', 'SX'), ('SKU003', 'ND'), ('SKU004', 'CG'), 
+        ('SKU005', 'BI'), ('SKU006', 'AT'), ('SKU007', 'SX'), ('SKU008', 'TS'),
+        ('SKU009', 'AG'), ('SKU010', 'DT')
+    ]
+    
+    # Generate sample order data (50 rows)
+    for i in range(50):
+        sku_code, category = sample_skus[i % len(sample_skus)]
+        order_data.append({
+            'Date': (base_date + timedelta(days=i % 30)).strftime('%Y-%m-%d'),
+            'Shipment No.': f'SH{1000 + i}',
+            'Order No.': f'ORD{2000 + i}',
+            'Sku Code': sku_code,
+            'Qty in Cases': max(1, (i % 10) * 2),
+            'Qty in Eaches': (i % 24) * 5
+        })
+    
+    order_df = pd.DataFrame(order_data)
+    
+    # Create sample SkuMaster data
+    sku_master_data = []
+    for sku_code, category in sample_skus:
+        sku_master_data.append({
+            'Sku Code': sku_code,
+            'Category': category,
+            'Case Config': 12 if category in ['BI', 'SX'] else 24,  # Items per case
+            'Pallet Fit': 48 if category in ['BI', 'SX'] else 64    # Cases per pallet
+        })
+    
+    sku_df = pd.DataFrame(sku_master_data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Write OrderData sheet
+        order_df.to_excel(writer, sheet_name='OrderData', index=False)
+        
+        # Write SkuMaster sheet
+        sku_df.to_excel(writer, sheet_name='SkuMaster', index=False)
+        
+        # Format the sheets
+        workbook = writer.book
+        
+        # Format OrderData sheet
+        order_sheet = workbook['OrderData']
+        for col in order_sheet.columns:
+            max_length = max(len(str(cell.value)) for cell in col if cell.value is not None)
+            order_sheet.column_dimensions[col[0].column_letter].width = min(max_length + 2, 20)
+        
+        # Format SkuMaster sheet
+        sku_sheet = workbook['SkuMaster']
+        for col in sku_sheet.columns:
+            max_length = max(len(str(cell.value)) for cell in col if cell.value is not None)
+            sku_sheet.column_dimensions[col[0].column_letter].width = min(max_length + 2, 20)
+    
+    output.seek(0)
+    return output.getvalue()
 
 
 class FileUploadValidator:
@@ -41,6 +115,32 @@ class FileUploadValidator:
             Uploaded file object or None
         """
         st.subheader("📁 Data Upload")
+        
+        # Template download section
+        st.info("📋 **First time using the tool?** Download our Excel template below to see the required data structure.")
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("""
+            **Template includes:**
+            - **OrderData sheet**: Date, Shipment No., Order No., Sku Code, Qty in Cases, Qty in Eaches
+            - **SkuMaster sheet**: Sku Code, Category, Case Config, Pallet Fit
+            - **Sample data**: 50 sample order lines with 10 sample SKUs
+            """)
+        with col2:
+            # Create template download button
+            template_data = create_excel_template()
+            st.download_button(
+                label="📥 Download Template",
+                data=template_data,
+                file_name="warehouse_analysis_template.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                help="Download Excel template with sample data structure",
+                use_container_width=True,
+                type="primary"
+            )
+        
+        st.markdown("---")
         
         # File uploader
         uploaded_file = st.file_uploader(

@@ -119,10 +119,26 @@ def main():
                     # Run actual analysis using the integration module
                     result = run_web_analysis(uploaded_file, parameters)
                     
+                    # Debug: Log the raw result structure
+                    import logging
+                    logging.basicConfig(level=logging.INFO)
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"Analysis result keys: {list(result.keys()) if result else 'No result'}")
+                    logger.info(f"Analysis success: {result.get('success', False)}")
+                    logger.info(f"Analysis results keys: {list(result.get('analysis_results', {}).keys())}")
+                    
                     # Store results in session state
-                    st.session_state.analysis_results = result.get('analysis_results', {})
+                    analysis_results = result.get('analysis_results', {})
+                    st.session_state.analysis_results = analysis_results
                     st.session_state.analysis_outputs = result.get('outputs', {})
                     st.session_state.analysis_complete = result.get('success', False)
+                    
+                    # Debug: Show what we stored in session state
+                    logger.info(f"Stored in session state - analysis_results keys: {list(analysis_results.keys())}")
+                    
+                    # Add temporary debug display
+                    if result.get('success', False) and not analysis_results:
+                        st.warning("⚠️ Analysis reported success but returned empty results. Check debug info below.")
                     
                     # Switch to results phase if successful
                     if result.get('success', False):

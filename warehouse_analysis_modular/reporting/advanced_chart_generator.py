@@ -527,3 +527,315 @@ class AdvancedChartGenerator:
         
         self.logger.info(f"Advanced percentile chart saved: {filename}")
         return str(filepath)
+    
+    def create_enhanced_order_trend_chart(self, date_summary: pd.DataFrame) -> str:
+        """
+        Create enhanced multi-line order trend chart showing multiple metrics in one visualization.
+        
+        Args:
+            date_summary: DataFrame with daily summary data
+            
+        Returns:
+            Path to saved chart file
+        """
+        self.logger.info("Creating enhanced multi-line order trend chart")
+        
+        if date_summary is None or date_summary.empty:
+            self.logger.warning("No date summary data available for enhanced trend chart")
+            return ""
+        
+        # Prepare data
+        df = date_summary.copy().sort_values("Date")
+        
+        # Create figure with dual y-axis
+        fig, ax1 = plt.subplots(figsize=(14, 8))
+        
+        # Primary y-axis - Volume metrics (larger scale)
+        color1 = '#ff7f0e'  # Orange for Case Equivalent
+        ax1.set_xlabel('Date', fontsize=12, fontweight='bold')
+        ax1.set_ylabel('Volume Metrics', color=color1, fontsize=12, fontweight='bold')
+        
+        # Plot Case Equivalent with primary axis
+        if 'Total_Case_Equiv' in df.columns:
+            line1 = ax1.plot(df['Date'], df['Total_Case_Equiv'], 
+                           color=color1, linewidth=2.5, marker='o', markersize=4,
+                           label='# Case Equiv.', alpha=0.8)
+            ax1.tick_params(axis='y', labelcolor=color1)
+        
+        # Secondary y-axis - Count metrics (smaller scale)
+        ax2 = ax1.twinx()
+        color2 = '#1f77b4'  # Blue for Lines
+        color3 = '#2ca02c'  # Green for Customers
+        color4 = '#d62728'  # Red for Shipments
+        
+        ax2.set_ylabel('Count Metrics', color='black', fontsize=12, fontweight='bold')
+        
+        # Plot count metrics
+        lines = []
+        if 'Total_Lines' in df.columns:
+            line2 = ax2.plot(df['Date'], df['Total_Lines'],
+                           color=color2, linewidth=2, marker='s', markersize=3,
+                           label='#Lines', alpha=0.8)
+            lines.extend(line2)
+        
+        if 'Distinct_Customers' in df.columns:
+            line3 = ax2.plot(df['Date'], df['Distinct_Customers'],
+                           color=color3, linewidth=2, marker='^', markersize=3,
+                           label='#Customer', alpha=0.8)
+            lines.extend(line3)
+        
+        if 'Distinct_Shipments' in df.columns:
+            line4 = ax2.plot(df['Date'], df['Distinct_Shipments'],
+                           color=color4, linewidth=2, marker='d', markersize=3,
+                           label='#Shipment', alpha=0.8)
+            lines.extend(line4)
+        
+        # Styling
+        ax1.grid(True, linestyle=':', alpha=0.6)
+        ax1.set_title('Order Profile - Trend\nMultiple Metrics Comparison', 
+                     fontsize=14, fontweight='bold', pad=20)
+        
+        # Format x-axis dates
+        ax1.tick_params(axis='x', rotation=45)
+        
+        # Combined legend
+        all_lines = line1 + lines if 'Total_Case_Equiv' in df.columns else lines
+        labels = [line.get_label() for line in all_lines]
+        ax1.legend(all_lines, labels, loc='upper right', bbox_to_anchor=(1, 0.95))
+        
+        # Add summary statistics table
+        stats_data = []
+        for col in ['Total_Case_Equiv', 'Total_Lines', 'Distinct_Customers', 'Distinct_Shipments']:
+            if col in df.columns:
+                stats_data.append([
+                    col.replace('Total_', '#').replace('Distinct_', '#'),
+                    f"{df[col].max():.0f}",
+                    f"{df[col].mean():.0f}",
+                    f"{(df[col].max() / df[col].mean()):.1f}x" if df[col].mean() > 0 else "N/A"
+                ])
+        
+        if stats_data:
+            # Add table below the chart
+            table = ax1.table(cellText=stats_data,
+                            colLabels=['Metric', 'Max', 'Avg', 'Peak/Avg'],
+                            cellLoc='center',
+                            loc='lower center',
+                            bbox=[0.15, -0.35, 0.7, 0.25])
+            table.auto_set_font_size(False)
+            table.set_fontsize(9)
+            table.scale(1, 1.2)
+            
+            # Style table
+            for i in range(len(stats_data) + 1):
+                for j in range(4):
+                    cell = table[(i, j)]
+                    if i == 0:  # Header
+                        cell.set_facecolor('#4CAF50')
+                        cell.set_text_props(weight='bold', color='white')
+                    else:
+                        cell.set_facecolor('#f0f0f0' if i % 2 == 0 else 'white')
+        
+        plt.tight_layout()
+        
+        # Save chart
+        filename = "enhanced_order_trend_profile.png"
+        filepath = self.charts_dir / filename
+        plt.savefig(filepath, dpi=self.dpi, bbox_inches='tight', facecolor='white')
+        plt.close()
+        
+        self.logger.info(f"Enhanced order trend chart saved: {filename}")
+        return str(filepath)
+    
+    def create_sku_profile_2d_classification_chart(self, analysis_results: Dict) -> str:
+        """
+        Create SKU Profile 2D classification chart showing SKU%, Volume%, and Lines% relationships.
+        
+        Args:
+            analysis_results: Dictionary containing analysis results with SKU profile data
+            
+        Returns:
+            Path to saved chart file
+        """
+        self.logger.info("Creating SKU Profile 2D classification chart")
+        
+        # Extract data from analysis results
+        abc_fms_summary = analysis_results.get('abc_fms_summary')
+        if abc_fms_summary is None or abc_fms_summary.empty:
+            self.logger.warning("No ABC-FMS summary data available for 2D classification chart")
+            return ""
+        
+        # Create figure with multiple subplots
+        fig = plt.figure(figsize=(16, 10))
+        
+        # Main chart area for the 2D visualization
+        ax_main = plt.subplot2grid((3, 3), (0, 0), colspan=2, rowspan=2)
+        
+        # Side chart for the bar comparison
+        ax_bars = plt.subplot2grid((3, 3), (0, 2), rowspan=2)
+        
+        # Table area for data
+        ax_table = plt.subplot2grid((3, 3), (2, 0), colspan=3)
+        ax_table.axis('off')
+        
+        # Calculate percentages for 2D classification
+        classification_data = []
+        colors = {'AF': '#4CAF50', 'AM': '#8BC34A', 'AS': '#CDDC39',
+                 'BF': '#FF9800', 'BM': '#FF5722', 'BS': '#F44336',
+                 'CF': '#9C27B0', 'CM': '#673AB7', 'CS': '#3F51B5'}
+        
+        # Extract ABC-FMS combinations and calculate percentages
+        total_skus = abc_fms_summary['SKU_Total'].sum() if 'SKU_Total' in abc_fms_summary.columns else 1
+        total_volume = abc_fms_summary['Volume_Total'].sum() if 'Volume_Total' in abc_fms_summary.columns else 1
+        total_lines = abc_fms_summary['Line_Total'].sum() if 'Line_Total' in abc_fms_summary.columns else 1
+        
+        # Process each ABC-FMS combination
+        for _, row in abc_fms_summary.iterrows():
+            if pd.isna(row.get('ABC', '')):
+                continue
+                
+            abc = row.get('ABC', '')
+            if abc == 'Grand Total':
+                continue
+                
+            # Calculate percentages for each FMS category
+            for fms in ['F', 'M', 'S']:
+                sku_col = f'SKU_{fms}'
+                vol_col = f'Volume_{fms}'
+                line_col = f'Line_{fms}'
+                
+                if sku_col in row and vol_col in row and line_col in row:
+                    sku_pct = (row[sku_col] / total_skus) * 100 if total_skus > 0 else 0
+                    vol_pct = (row[vol_col] / total_volume) * 100 if total_volume > 0 else 0
+                    line_pct = (row[line_col] / total_lines) * 100 if total_lines > 0 else 0
+                    
+                    if sku_pct > 0 or vol_pct > 0 or line_pct > 0:  # Only include non-zero entries
+                        classification_data.append({
+                            'Class': f'{abc}{fms}',
+                            'SKU_Pct': sku_pct,
+                            'Volume_Pct': vol_pct,
+                            'Lines_Pct': line_pct,
+                            'Color': colors.get(f'{abc}{fms}', '#808080')
+                        })
+        
+        if not classification_data:
+            self.logger.warning("No valid classification data for 2D chart")
+            return ""
+        
+        df_class = pd.DataFrame(classification_data)
+        
+        # Main 2D visualization - Stacked bar with connected lines
+        x_positions = range(len(df_class))
+        
+        # Create grouped bars for SKU%, Volume%, Lines%
+        width = 0.25
+        x1 = [x - width for x in x_positions]
+        x2 = x_positions
+        x3 = [x + width for x in x_positions]
+        
+        bars1 = ax_main.bar(x1, df_class['SKU_Pct'], width, label='SKU %', 
+                           color='lightblue', alpha=0.8, edgecolor='black', linewidth=0.5)
+        bars2 = ax_main.bar(x2, df_class['Volume_Pct'], width, label='Volume %', 
+                           color='lightgreen', alpha=0.8, edgecolor='black', linewidth=0.5)
+        bars3 = ax_main.bar(x3, df_class['Lines_Pct'], width, label='Lines %', 
+                           color='lightcoral', alpha=0.8, edgecolor='black', linewidth=0.5)
+        
+        # Add connecting lines to show relationships
+        for i in range(len(df_class)):
+            ax_main.plot([x1[i], x2[i], x3[i]], 
+                        [df_class.iloc[i]['SKU_Pct'], df_class.iloc[i]['Volume_Pct'], df_class.iloc[i]['Lines_Pct']], 
+                        'o--', color='gray', alpha=0.6, linewidth=1, markersize=4)
+        
+        ax_main.set_xlabel('ABC-FMS Classification', fontsize=12, fontweight='bold')
+        ax_main.set_ylabel('Percentage (%)', fontsize=12, fontweight='bold')
+        ax_main.set_title('SKU Profile - 2D Class\nPercentage Distribution Analysis', fontsize=14, fontweight='bold')
+        ax_main.set_xticks(x_positions)
+        ax_main.set_xticklabels(df_class['Class'], rotation=45)
+        ax_main.legend(loc='upper right')
+        ax_main.grid(True, alpha=0.3, axis='y')
+        
+        # Add percentage labels on bars
+        for bars in [bars1, bars2, bars3]:
+            for bar in bars:
+                height = bar.get_height()
+                if height > 0.5:  # Only label bars with meaningful height
+                    ax_main.text(bar.get_x() + bar.get_width()/2., height + 0.5,
+                               f'{height:.0f}%', ha='center', va='bottom', fontsize=8)
+        
+        # Side bar chart showing key insights
+        # Find top performers
+        top_volume = df_class.nlargest(3, 'Volume_Pct')
+        top_sku = df_class.nlargest(3, 'SKU_Pct')
+        
+        insight_data = []
+        if not top_volume.empty:
+            insight_data.append(['Top Vol Class', top_volume.iloc[0]['Class'], f"{top_volume.iloc[0]['Volume_Pct']:.0f}%"])
+        if not top_sku.empty:
+            insight_data.append(['Top SKU Class', top_sku.iloc[0]['Class'], f"{top_sku.iloc[0]['SKU_Pct']:.0f}%"])
+        
+        # Calculate key ratios (e.g., AF class analysis)
+        af_class = df_class[df_class['Class'] == 'AF']
+        if not af_class.empty:
+            af_row = af_class.iloc[0]
+            insight_data.append(['AF Class SKU%', 'High Value/Fast', f"{af_row['SKU_Pct']:.0f}%"])
+            insight_data.append(['AF Class Vol%', 'Critical Items', f"{af_row['Volume_Pct']:.0f}%"])
+            insight_data.append(['AF Class Lines%', 'High Activity', f"{af_row['Lines_Pct']:.0f}%"])
+        
+        # Create insight visualization in side panel
+        if insight_data:
+            y_pos = range(len(insight_data))
+            values = [float(row[2].replace('%', '')) for row in insight_data]
+            labels = [f"{row[0]}\n{row[1]}" for row in insight_data]
+            
+            bars = ax_bars.barh(y_pos, values, color=['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B'][:len(values)])
+            ax_bars.set_yticks(y_pos)
+            ax_bars.set_yticklabels(labels, fontsize=9)
+            ax_bars.set_xlabel('Percentage (%)', fontsize=10)
+            ax_bars.set_title('Key Insights', fontsize=12, fontweight='bold')
+            ax_bars.grid(True, alpha=0.3, axis='x')
+            
+            # Add value labels
+            for i, (bar, val) in enumerate(zip(bars, values)):
+                ax_bars.text(val + 1, i, f'{val:.0f}%', va='center', ha='left', fontsize=9, fontweight='bold')
+        
+        # Data table
+        table_data = []
+        for _, row in df_class.head(8).iterrows():  # Show top 8 classes
+            table_data.append([
+                row['Class'],
+                f"{row['SKU_Pct']:.1f}%",
+                f"{row['Volume_Pct']:.1f}%", 
+                f"{row['Lines_Pct']:.1f}%"
+            ])
+        
+        if table_data:
+            table = ax_table.table(cellText=table_data,
+                                  colLabels=['ABC-FMS Class', 'SKU %', 'Volume %', 'Lines %'],
+                                  cellLoc='center',
+                                  loc='center',
+                                  bbox=[0, 0, 1, 1])
+            table.auto_set_font_size(False)
+            table.set_fontsize(10)
+            table.scale(1, 2)
+            
+            # Style table
+            for i in range(len(table_data) + 1):
+                for j in range(4):
+                    cell = table[(i, j)]
+                    if i == 0:  # Header
+                        cell.set_facecolor('#2196F3')
+                        cell.set_text_props(weight='bold', color='white')
+                    else:
+                        cell.set_facecolor('#f8f9fa' if i % 2 == 0 else 'white')
+        
+        plt.suptitle('SKU Profile 2D Classification Analysis\nStrategic Distribution Patterns', 
+                     fontsize=16, fontweight='bold', y=0.95)
+        plt.tight_layout()
+        
+        # Save chart
+        filename = "sku_profile_2d_classification.png"
+        filepath = self.charts_dir / filename
+        plt.savefig(filepath, dpi=self.dpi, bbox_inches='tight', facecolor='white')
+        plt.close()
+        
+        self.logger.info(f"SKU Profile 2D classification chart saved: {filename}")
+        return str(filepath)

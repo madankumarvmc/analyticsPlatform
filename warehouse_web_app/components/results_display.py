@@ -111,13 +111,189 @@ class ResultsDisplayManager:
         
         return structure_info
     
+    def _compute_basic_stats_from_data(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Compute basic statistics from available analysis results data."""
+        computed_stats = {}
+        
+        # Try to extract statistics from available dataframes
+        try:
+            # Check for date_order_summary data
+            if 'date_order_summary' in analysis_results:
+                date_data = analysis_results['date_order_summary']
+                if isinstance(date_data, pd.DataFrame) and not date_data.empty:
+                    # Check what columns are available
+                    available_cols = list(date_data.columns)
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"Date summary columns: {available_cols}")
+                    
+                    # Try multiple possible column names for volume
+                    total_volume = 0
+                    volume_columns = ['Total_Case_Equiv', 'Total_Case_Equivalent', 'Case_Equivalent', 'Qty_Ordered']
+                    for vol_col in volume_columns:
+                        if vol_col in date_data.columns:
+                            total_volume = date_data[vol_col].sum()
+                            logger.info(f"Found volume in column {vol_col}: {total_volume}")
+                            break
+                    
+                    computed_stats.update({
+                        'total_case_equivalent': total_volume,
+                        'unique_dates': len(date_data),
+                    })
+            
+            # Check for SKU profile data
+            if 'sku_profile_abc_fms' in analysis_results:
+                sku_data = analysis_results['sku_profile_abc_fms']
+                if isinstance(sku_data, pd.DataFrame) and not sku_data.empty:
+                    # Check what columns are available
+                    available_cols = list(sku_data.columns)
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"SKU profile columns: {available_cols}")
+                    
+                    # Try multiple possible column names for order lines
+                    total_order_lines = 0
+                    order_line_columns = ['Total_Order_Lines', 'Order_Lines', 'Lines', 'Qty_Ordered']
+                    for line_col in order_line_columns:
+                        if line_col in sku_data.columns:
+                            total_order_lines = sku_data[line_col].sum()
+                            logger.info(f"Found order lines in column {line_col}: {total_order_lines}")
+                            break
+                    
+                    # Get total volume from SKU data as well
+                    sku_total_volume = 0
+                    sku_volume_columns = ['Total_Case_Equiv', 'Total_Case_Equivalent', 'Case_Equivalent']
+                    for vol_col in sku_volume_columns:
+                        if vol_col in sku_data.columns:
+                            sku_total_volume = sku_data[vol_col].sum()
+                            logger.info(f"Found SKU volume in column {vol_col}: {sku_total_volume}")
+                            break
+                    
+                    computed_stats.update({
+                        'unique_skus': len(sku_data),
+                        'total_order_lines': total_order_lines
+                    })
+                    
+                    # Use SKU volume if we didn't get it from date summary
+                    if computed_stats.get('total_case_equivalent', 0) == 0 and sku_total_volume > 0:
+                        computed_stats['total_case_equivalent'] = sku_total_volume
+            
+            # Log what we computed
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Final computed basic stats: {computed_stats}")
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error computing basic stats: {e}")
+        
+        return computed_stats
+    
     def _display_results_header(self, analysis_results: Dict[str, Any]) -> None:
         """Display full-width results header with key metrics."""
         st.markdown("### 📊 Analysis Summary")
         
-        # Get statistics from results
+        # Debug: Log the structure of analysis_results
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Analysis results keys: {list(analysis_results.keys())}")
+        
+        # Get statistics from results with fallback logic
         order_stats = analysis_results.get('order_statistics', {})
+        
+        # If order_statistics is empty, try alternative locations
+        if not order_stats:
+            # Try to extract from other possible locations
+            if 'statistics' in analysis_results:
+                order_stats = analysis_results['statistics']
+                logger.info("Found statistics in root level 'statistics' key")
+            elif 'order_analysis' in analysis_results and isinstance(analysis_results['order_analysis'], dict):
+                order_stats = analysis_results['order_analysis'].get('statistics', {})
+                logger.info("Found statistics in 'order_analysis.statistics'")
+            else:
+                # Try to compute basic stats from available data
+                logger.warning("No order statistics found, attempting to compute from available data")
+                order_stats = self._compute_basic_stats_from_data(analysis_results)
+        
+        logger.info(f"Order stats keys: {list(order_stats.keys()) if order_stats else 'None'}")
+        logger.info(f"Order stats values: {order_stats if order_stats else 'Empty'}")
+        
+        # FORCE computed statistics if we have data but metrics are zero
+        # This is a temporary fix to ensure users see correct values
+        computed_backup = self._compute_basic_stats_from_data(analysis_results)
+        if computed_backup:
+            logger.info(f"Computed backup stats: {computed_backup}")
+            # Check if order_stats has all zero values and override
+            if order_stats:
+                key_metrics = ['total_order_lines', 'unique_skus', 'unique_dates', 'total_case_equivalent']
+                all_zeros = all(order_stats.get(key, 0) == 0 for key in key_metrics)
+                if all_zeros:
+                    logger.warning("Order stats found but all values are zero, using computed stats")
+                    order_stats.update(computed_backup)
+                    logger.info(f"Updated order stats with computed values: {order_stats}")
+                else:
+                    # Check individual metrics and update any that are zero but computed has values
+                    for key in key_metrics:
+                        if order_stats.get(key, 0) == 0 and computed_backup.get(key, 0) > 0:
+                            logger.info(f"Overriding zero value for {key}: {order_stats.get(key)} -> {computed_backup[key]}")
+                            order_stats[key] = computed_backup[key]
+            else:
+                # No order_stats found at all, use computed
+                order_stats = computed_backup
+                logger.info(f"No order_stats found, using computed stats: {order_stats}")
+        
         sku_stats = analysis_results.get('sku_statistics', {})
+        
+        # Add debug info for development (can be removed later)
+        try:
+            with st.expander("🔧 Debug Info", expanded=False):
+                st.write("**Analysis Results Structure:**")
+                st.json({
+                    "available_keys": list(analysis_results.keys()),
+                    "order_stats_found": bool(order_stats),
+                    "order_stats_keys": list(order_stats.keys()) if order_stats else [],
+                    "order_stats_values": {k: v for k, v in order_stats.items()} if order_stats else "Empty",
+                    "final_order_stats_for_display": {
+                        "total_order_lines": order_stats.get('total_order_lines', 0),
+                        "unique_skus": order_stats.get('unique_skus', 0),
+                        "unique_dates": order_stats.get('unique_dates', 0),
+                        "total_case_equivalent": order_stats.get('total_case_equivalent', 0)
+                    } if order_stats else "No stats",
+                    "data_types": {k: str(type(v)) for k, v in analysis_results.items()},
+                    "total_analysis_results_keys": len(analysis_results),
+                    "session_state_check": {
+                        "analysis_complete": st.session_state.get('analysis_complete', 'Not found'),
+                        "analysis_results_keys": list(st.session_state.get('analysis_results', {}).keys()),
+                        "analysis_outputs_keys": list(st.session_state.get('analysis_outputs', {}).keys())
+                    }
+                })
+                
+                # Show some sample data if available
+                if 'date_order_summary' in analysis_results:
+                    date_data = analysis_results['date_order_summary']
+                    if isinstance(date_data, pd.DataFrame) and not date_data.empty:
+                        st.write("**Sample from date_order_summary:**")
+                        st.dataframe(date_data.head(3))
+                    else:
+                        st.write("**date_order_summary:** Empty or not a DataFrame")
+                        
+                if 'sku_profile_abc_fms' in analysis_results:
+                    sku_data = analysis_results['sku_profile_abc_fms']
+                    if isinstance(sku_data, pd.DataFrame) and not sku_data.empty:
+                        st.write("**Sample from sku_profile_abc_fms:**")
+                        st.dataframe(sku_data.head(3))
+                        
+                        # Show quick calculations
+                        if 'Total_Case_Equiv' in sku_data.columns:
+                            quick_total = sku_data['Total_Case_Equiv'].sum()
+                            st.write(f"**Quick calc - Total Case Equiv from SKU data:** {quick_total:,.2f}")
+                        
+                        if 'Total_Order_Lines' in sku_data.columns:
+                            quick_lines = sku_data['Total_Order_Lines'].sum()
+                            st.write(f"**Quick calc - Total Order Lines from SKU data:** {quick_lines:,}")
+                    else:
+                        st.write("**sku_profile_abc_fms:** Empty or not a DataFrame")
+        except Exception as e:
+            st.write(f"Debug info error: {e}")
         
         # Create metrics columns - full width with better spacing
         col1, col2, col3, col4, col5 = st.columns(5)
@@ -669,11 +845,16 @@ class ResultsDisplayManager:
                             )
                         
                         with col3:
+                            # Handle small datasets gracefully
+                            min_skus = max(1, min(10, len(sku_profile)))
+                            max_skus = max(min_skus + 1, min(100, len(sku_profile)))
+                            default_skus = max(min_skus, min(50, len(sku_profile)))
+                            
                             top_n = st.slider(
                                 "Show Top N SKUs",
-                                min_value=10,
-                                max_value=min(100, len(sku_profile)),
-                                value=min(50, len(sku_profile)),
+                                min_value=min_skus,
+                                max_value=max_skus,
+                                value=default_skus,
                                 key="top_n_fullwidth"
                             )
                         

@@ -68,13 +68,31 @@ class WebAnalysisIntegrator:
         try:
             # Step 1: Prepare data
             enriched_data = self._prepare_data_from_upload(uploaded_file)
+            self.logger.info(f"Data preparation completed. Shape: {enriched_data.shape if enriched_data is not None else 'None'}")
+            
+            if enriched_data is None or enriched_data.empty:
+                raise Exception("Data preparation resulted in empty dataset")
             
             # Step 2: Update configuration with web parameters
             self._update_analysis_config(parameters)
             
             # Step 3: Run enhanced analysis pipeline if available
             if ENHANCED_AVAILABLE:
-                combined_results = self._run_enhanced_analysis(enriched_data, parameters)
+                try:
+                    combined_results = self._run_enhanced_analysis(enriched_data, parameters)
+                    self.logger.info(f"Enhanced analysis completed, result keys: {list(combined_results.keys())}")
+                except Exception as enhanced_error:
+                    self.logger.error(f"Enhanced analysis failed: {enhanced_error}")
+                    self.logger.info("Falling back to basic analysis pipeline")
+                    # Fallback to basic analysis
+                    order_results = self._run_order_analysis(enriched_data, parameters)
+                    sku_results = self._run_sku_analysis(enriched_data, parameters)
+                    cross_tab_results = self._run_cross_tabulation_analysis(
+                        sku_results.get('sku_profile_abc_fms'), parameters
+                    )
+                    combined_results = self._combine_analysis_results(
+                        order_results, sku_results, cross_tab_results
+                    )
             else:
                 # Fallback to basic analysis
                 order_results = self._run_order_analysis(enriched_data, parameters)
@@ -101,6 +119,27 @@ class WebAnalysisIntegrator:
         except Exception as e:
             self.logger.error(f"Analysis pipeline failed: {str(e)}")
             self.logger.error(traceback.format_exc())
+            
+            # Try to provide some basic analysis even if the main pipeline fails
+            try:
+                self.logger.info("Attempting basic fallback analysis...")
+                basic_order_results = self._run_order_analysis(enriched_data, parameters)
+                basic_sku_results = self._run_sku_analysis(enriched_data, parameters)
+                
+                if basic_order_results or basic_sku_results:
+                    fallback_results = self._combine_analysis_results(
+                        basic_order_results, basic_sku_results, {}
+                    )
+                    return {
+                        'success': True,
+                        'analysis_results': fallback_results,
+                        'outputs': {},
+                        'metadata': self._create_metadata(fallback_results, parameters),
+                        'message': f'Analysis completed with basic features (advanced analysis failed: {str(e)})'
+                    }
+            except Exception as fallback_error:
+                self.logger.error(f"Fallback analysis also failed: {fallback_error}")
+            
             return {
                 'success': False,
                 'error': str(e),
@@ -241,8 +280,16 @@ class WebAnalysisIntegrator:
             if enable_advanced:
                 enhanced_results = pipeline.run_advanced_analysis(enriched_data, basic_results)
             
-            # Combine basic and enhanced results
+            # Combine basic and enhanced results - ensure proper structure for web display
             combined_results = {**basic_results, **enhanced_results}
+            
+            # Ensure order_statistics is properly mapped from basic results
+            if 'statistics' in basic_results and 'order_statistics' not in combined_results:
+                combined_results['order_statistics'] = basic_results['statistics']
+                self.logger.info("Mapped 'statistics' to 'order_statistics' for web display compatibility")
+            elif 'statistics' in combined_results and 'order_statistics' not in combined_results:
+                combined_results['order_statistics'] = combined_results['statistics']
+                self.logger.info("Mapped root-level 'statistics' to 'order_statistics' for web display compatibility")
             
             # Generate charts and reports
             if generate_charts:

@@ -279,6 +279,21 @@ class EnhancedWarehouseAnalysisPipeline:
                     )
                     chart_paths['advanced_percentile'] = chart_path
             
+            # 6. Enhanced Multi-Line Order Trend Chart (for Word reports)
+            if 'date_order_summary' in basic_results:
+                chart_path = self.advanced_chart_generator.create_enhanced_order_trend_chart(
+                    basic_results['date_order_summary']
+                )
+                if chart_path:
+                    chart_paths['enhanced_order_trend'] = chart_path
+            
+            # 7. SKU Profile 2D Classification Chart (for Word reports)
+            # Combine basic and advanced results for comprehensive data
+            combined_data = {**basic_results, **advanced_results}
+            chart_path = self.advanced_chart_generator.create_sku_profile_2d_classification_chart(combined_data)
+            if chart_path:
+                chart_paths['sku_profile_2d_classification'] = chart_path
+            
             self.logger.info(f"Generated {len(chart_paths)} advanced charts")
             
         except Exception as e:

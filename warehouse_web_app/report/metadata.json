@@ -1,30 +1,24 @@
 {
-  "generated_on": "2025-09-24T14:12:50.796881",
-  "total_dates": 79,
-  "total_skus": 890,
-  "total_order_lines": 123307,
-  "total_case_equivalent": 883465.2995963062,
-  "date_range": {
-    "start": "2025-02-01T00:00:00",
-    "end": "2025-04-30T00:00:00"
-  },
+  "generated_on": "2025-09-26T14:18:33.534021",
+  "total_dates": 0,
+  "total_skus": 0,
+  "total_order_lines": 0,
+  "total_case_equivalent": 0,
+  "date_range": {},
   "dataframe_counts": {
     "date_order_summary": 79,
     "sku_order_summary": 890,
     "percentile_profile": 5,
     "sku_profile_abc_fms": 890,
-    "abc_fms_summary": 4
+    "abc_fms_summary": 4,
+    "sku_count_crosstab": 3,
+    "volume_crosstab": 3,
+    "volume_percentage": 3,
+    "lines_crosstab": 3,
+    "lines_percentage": 3
   },
-  "abc_distribution": {
-    "C": 784,
-    "B": 76,
-    "A": 30
-  },
-  "fms_distribution": {
-    "S": 665,
-    "M": 129,
-    "F": 96
-  },
+  "abc_distribution": {},
+  "fms_distribution": {},
   "report_sections": [
     "Date Profile",
     "Percentile Summary",
