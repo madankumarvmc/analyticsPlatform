@@ -67,7 +67,8 @@ class ExcelExporter:
         advanced_mapping = {
             'advanced_order_analysis': 'Advanced Order Analysis',
             'picking_analysis': 'Picking Analysis',
-            'enhanced_abc_fms_analysis': 'Enhanced ABC-FMS'
+            'enhanced_abc_fms_analysis': 'Enhanced ABC-FMS',
+            'manpower_analysis': EXCEL_SHEETS['manpower_analysis']
         }
         
         for result_key, sheet_name in sheet_mapping.items():
@@ -445,6 +446,158 @@ class ExcelExporter:
                     
                     if insights_data:
                         export_data['Category Key Insights'] = pd.DataFrame(insights_data)
+        
+        # Process Manpower Analysis
+        if 'manpower_analysis' in analysis_results:
+            manpower_analysis = analysis_results['manpower_analysis']
+            
+            # Daily FTE requirements
+            daily_patterns = manpower_analysis.get('daily_staffing_analysis', {})
+            daily_fte_data = daily_patterns.get('daily_fte_data')
+            if daily_fte_data is not None and not daily_fte_data.empty:
+                # Format daily FTE data for Excel
+                fte_data = daily_fte_data[[
+                    'Date', 'Total_Cases', 'Total_Lines', 'Total_Shipments',
+                    'FTE_Required_Total', 'Utilization_Cases', 'Utilization_Lines'
+                ]].copy()
+                fte_data.columns = [
+                    'Date', 'Daily_Cases', 'Daily_Lines', 'Daily_Shipments',
+                    'FTE_Required', 'Cases_Utilization', 'Lines_Utilization'
+                ]
+                export_data['Daily FTE Requirements'] = fte_data
+            
+            # Manpower summary metrics
+            summary_metrics = manpower_analysis.get('summary_metrics', {})
+            peak_analysis = manpower_analysis.get('peak_analysis', {})
+            cost_analysis = manpower_analysis.get('cost_analysis', {})
+            
+            if summary_metrics or peak_analysis or cost_analysis:
+                summary_data = []
+                
+                # FTE metrics
+                if summary_metrics:
+                    summary_data.extend([
+                        {'Metric': 'Recommended Core FTE', 'Value': summary_metrics.get('recommended_core_fte', 0)},
+                        {'Metric': 'Peak FTE Requirement', 'Value': summary_metrics.get('peak_fte_requirement', 0)},
+                        {'Metric': 'Average FTE Requirement', 'Value': summary_metrics.get('average_fte_requirement', 0)},
+                        {'Metric': 'Flex Capacity Needed', 'Value': summary_metrics.get('flex_capacity_needed', 0)},
+                        {'Metric': 'Peak Days (%)', 'Value': summary_metrics.get('peak_days_percentage', 0)}
+                    ])
+                
+                # Cost metrics
+                if cost_analysis:
+                    summary_data.extend([
+                        {'Metric': 'Monthly Labor Budget ($)', 'Value': round(cost_analysis.get('total_monthly_labor', 0), 0)},
+                        {'Metric': 'Cost per Case ($)', 'Value': round(cost_analysis.get('cost_per_case', 0), 2)},
+                        {'Metric': 'Annual Labor Budget ($)', 'Value': round(cost_analysis.get('annual_labor_budget', 0), 0)}
+                    ])
+                
+                if summary_data:
+                    export_data['Manpower Summary'] = pd.DataFrame(summary_data)
+            
+            # Category labor breakdown
+            category_analysis = manpower_analysis.get('category_labor_analysis', {})
+            category_breakdown = category_analysis.get('category_breakdown')
+            if category_breakdown is not None and not category_breakdown.empty:
+                category_data = category_breakdown[[
+                    'Category', 'Daily_Cases', 'Daily_Lines', 'Labor_Coefficient',
+                    'FTE_Total_Required', 'FTE_Percentage'
+                ]].copy()
+                category_data.columns = [
+                    'Category', 'Avg_Daily_Cases', 'Avg_Daily_Lines', 'Labor_Complexity',
+                    'FTE_Required', 'FTE_Percentage'
+                ]
+                export_data['Category Labor Allocation'] = category_data
+            
+            # Shift planning recommendations
+            shift_planning = manpower_analysis.get('shift_planning', {})
+            if shift_planning:
+                shift_data = []
+                
+                core_staffing = shift_planning.get('core_staffing', {})
+                peak_staffing = shift_planning.get('peak_staffing', {})
+                flex_requirements = shift_planning.get('flexibility_requirements', {})
+                
+                if core_staffing:
+                    shift_data.extend([
+                        {'Planning_Type': 'Core Staffing', 'Shift_1_Day': core_staffing.get('shift_1_day', 0),
+                         'Shift_2_Evening': core_staffing.get('shift_2_evening', 0), 'Total': core_staffing.get('total_core', 0)},
+                    ])
+                
+                if peak_staffing:
+                    shift_data.extend([
+                        {'Planning_Type': 'Peak Staffing', 'Shift_1_Day': peak_staffing.get('shift_1_day', 0),
+                         'Shift_2_Evening': peak_staffing.get('shift_2_evening', 0), 'Total': peak_staffing.get('total_peak', 0)},
+                    ])
+                
+                if flex_requirements:
+                    shift_data.extend([
+                        {'Planning_Type': 'Flexibility Needs', 'Shift_1_Day': flex_requirements.get('flex_fte_needed', 0),
+                         'Shift_2_Evening': flex_requirements.get('overtime_hours_per_week', 0), 'Total': flex_requirements.get('temp_worker_days_per_month', 0)}
+                    ])
+                
+                if shift_data:
+                    export_data['Shift Planning'] = pd.DataFrame(shift_data)
+
+        # Process Enhanced Chart Data (following expansion framework)
+        if 'chart_paths' in analysis_results:
+            chart_paths = analysis_results['chart_paths']
+            
+            # Enhanced Order Trend Chart Data
+            if 'enhanced_order_trend' in chart_paths:
+                # If we have the date_order_summary, add it as chart data
+                if 'date_order_summary' in analysis_results:
+                    date_data = analysis_results['date_order_summary']
+                    if not date_data.empty:
+                        # Add enhanced trend chart data
+                        trend_data = date_data.copy()
+                        trend_data['Chart_Type'] = 'Enhanced Order Trend'
+                        export_data['Enhanced Order Trend Data'] = trend_data
+            
+            # SKU Profile 2D Classification Chart Data  
+            if 'sku_profile_2d_classification' in chart_paths:
+                # Create chart data from ABC-FMS analysis
+                if 'abc_fms_summary' in analysis_results:
+                    abc_fms_data = analysis_results['abc_fms_summary']
+                    if not abc_fms_data.empty:
+                        # Create 2D classification data for Excel
+                        classification_data = []
+                        
+                        for _, row in abc_fms_data.iterrows():
+                            abc = row.get('ABC', '')
+                            if abc and abc != 'Grand Total':
+                                for fms in ['F', 'M', 'S']:
+                                    sku_col = f'SKU_{fms}'
+                                    vol_col = f'Volume_{fms}'
+                                    line_col = f'Line_{fms}'
+                                    
+                                    if all(col in row for col in [sku_col, vol_col, line_col]):
+                                        classification_data.append({
+                                            'ABC_FMS_Class': f'{abc}{fms}',
+                                            'SKU_Count': row[sku_col],
+                                            'Volume_Total': row[vol_col],
+                                            'Line_Total': row[line_col],
+                                            'Chart_Type': 'SKU Profile 2D Classification'
+                                        })
+                        
+                        if classification_data:
+                            export_data['SKU 2D Classification Data'] = pd.DataFrame(classification_data)
+        
+        # Chart Generation Summary
+        if 'chart_paths' in analysis_results:
+            chart_paths = analysis_results['chart_paths']
+            if chart_paths:
+                chart_summary = []
+                for chart_name, chart_path in chart_paths.items():
+                    chart_summary.append({
+                        'Chart_Name': chart_name,
+                        'File_Path': chart_path,
+                        'Chart_Type': 'Advanced Chart',
+                        'Status': 'Generated'
+                    })
+                
+                if chart_summary:
+                    export_data['Generated Charts Summary'] = pd.DataFrame(chart_summary)
     
     def export_to_excel(self, analysis_results: Dict, 
                        include_formatting: bool = True) -> str:

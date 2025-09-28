@@ -29,6 +29,7 @@ from warehouse_analysis_modular.analyzers.advanced_order_analyzer import Advance
 from warehouse_analysis_modular.analyzers.picking_analyzer import PickingAnalyzer
 from warehouse_analysis_modular.analyzers.enhanced_abc_fms_analyzer import EnhancedABCFMSAnalyzer
 from warehouse_analysis_modular.analyzers.category_performance_analyzer import CategoryPerformanceAnalyzer
+from warehouse_analysis_modular.analyzers.manpower_analyzer import ManpowerAnalyzer
 
 # Import reporting modules
 from warehouse_analysis_modular.reporting import (
@@ -94,6 +95,7 @@ class EnhancedWarehouseAnalysisPipeline:
         self.picking_analyzer = PickingAnalyzer() if run_advanced_analysis else None
         self.enhanced_abc_fms_analyzer = EnhancedABCFMSAnalyzer() if run_advanced_analysis else None
         self.use_category_performance_analyzer = run_advanced_analysis
+        self.manpower_analyzer = None  # Initialize as None initially
     
     def load_data(self) -> 'pd.DataFrame':
         """
@@ -210,6 +212,20 @@ class EnhancedWarehouseAnalysisPipeline:
                 category_performance_results = category_analyzer.run_full_analysis()
                 advanced_results['category_performance_analysis'] = category_performance_results
             
+            # 5. Manpower & FTE Analysis
+            # Initialize manpower analyzer (following critical pipeline fixes naming conventions)
+            if not self.manpower_analyzer:
+                self.manpower_analyzer = ManpowerAnalyzer()
+            
+            if self.manpower_analyzer:
+                self.logger.info("Running manpower & FTE analysis")
+                manpower_results = self.manpower_analyzer.run_full_analysis(
+                    enriched_data,
+                    date_summary=basic_results.get('date_order_summary'),
+                    sku_profile=basic_results.get('sku_profile_abc_fms')
+                )
+                advanced_results['manpower_analysis'] = manpower_results
+            
             self.logger.info("Advanced analysis completed successfully")
             
         except Exception as e:
@@ -305,6 +321,26 @@ class EnhancedWarehouseAnalysisPipeline:
                 self.logger.info(f"✅ SKU 2D classification chart saved to: {chart_path}")
             else:
                 self.logger.warning("❌ SKU 2D classification chart generation returned empty path")
+            
+            # 8. Manpower & FTE Charts (for Word reports)
+            if 'manpower_analysis' in advanced_results:
+                manpower_analysis = advanced_results['manpower_analysis']
+                
+                # FTE Requirements Timeline Chart
+                fte_timeline_path = self.advanced_chart_generator.create_fte_requirements_timeline_chart(manpower_analysis)
+                if fte_timeline_path:
+                    chart_paths['fte_requirements_timeline'] = fte_timeline_path
+                    self.logger.info(f"✅ FTE timeline chart saved to: {fte_timeline_path}")
+                else:
+                    self.logger.warning("❌ FTE timeline chart generation returned empty path")
+                
+                # Workforce Planning Dashboard Chart
+                workforce_dashboard_path = self.advanced_chart_generator.create_workforce_planning_summary_chart(manpower_analysis)
+                if workforce_dashboard_path:
+                    chart_paths['workforce_planning_dashboard'] = workforce_dashboard_path
+                    self.logger.info(f"✅ Workforce planning dashboard saved to: {workforce_dashboard_path}")
+                else:
+                    self.logger.warning("❌ Workforce planning dashboard generation returned empty path")
             
             self.logger.info(f"Generated {len(chart_paths)} advanced charts")
             

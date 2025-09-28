@@ -155,7 +155,8 @@ EXCEL_SHEETS = {
     'sku_summary': 'SKU Order Summary', 
     'percentile': 'Order Profile(Percentile)',
     'sku_abc_fms': 'SKU_Profile_ABC_FMS',
-    'abc_fms_summary': 'ABC_FMS_Summary'
+    'abc_fms_summary': 'ABC_FMS_Summary',
+    'manpower_analysis': 'Manpower & FTE Analysis'
 }
 
 # =============================================================================

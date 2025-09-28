@@ -861,6 +861,86 @@ class LLMIntegration:
         except Exception as e:
             self.logger.error(f"Failed to generate category performance summary: {str(e)}")
             return f"(Category performance summary generation failed: {str(e)})"
+    
+    def generate_manpower_summary(self, manpower_analysis: Dict) -> str:
+        """
+        Generate AI summary for manpower and FTE analysis.
+        
+        Args:
+            manpower_analysis: Dictionary containing manpower analysis results
+            
+        Returns:
+            AI-generated summary text
+        """
+        try:
+            if not manpower_analysis:
+                return "(No manpower analysis data available)"
+            
+            # Extract key metrics for facts
+            summary_metrics = manpower_analysis.get('summary_metrics', {})
+            cost_analysis = manpower_analysis.get('cost_analysis', {})
+            peak_analysis = manpower_analysis.get('peak_analysis', {})
+            daily_patterns = manpower_analysis.get('daily_staffing_analysis', {})
+            
+            facts = {
+                "recommended_core_fte": summary_metrics.get('recommended_core_fte', 0),
+                "peak_fte_requirement": summary_metrics.get('peak_fte_requirement', 0),
+                "average_fte_requirement": summary_metrics.get('average_fte_requirement', 0),
+                "flex_capacity_needed": summary_metrics.get('flex_capacity_needed', 0),
+                "peak_days_percentage": summary_metrics.get('peak_days_percentage', 0),
+                "monthly_labor_budget": cost_analysis.get('total_monthly_labor', 0),
+                "annual_labor_budget": cost_analysis.get('annual_labor_budget', 0),
+                "cost_per_case": cost_analysis.get('cost_per_case', 0),
+                "baseline_fte": peak_analysis.get('baseline_fte', 0),
+                "peak_multiplier": peak_analysis.get('peak_multiplier', 1),
+                "peak_days_count": peak_analysis.get('peak_days_count', 0),
+                "avg_fte_required": daily_patterns.get('avg_fte_required', 0),
+                "max_fte_required": daily_patterns.get('max_fte_required', 0),
+                "std_fte_required": daily_patterns.get('std_fte_required', 0)
+            }
+            
+            prompt = f"""
+            Based on the comprehensive manpower and FTE analysis data provided:
+            
+            **FTE Requirements:**
+            - Recommended Core FTE: {facts['recommended_core_fte']:.0f}
+            - Peak FTE Requirement: {facts['peak_fte_requirement']:.0f}
+            - Average FTE Requirement: {facts['average_fte_requirement']:.1f}
+            - Flex Capacity Needed: {facts['flex_capacity_needed']:.0f}
+            - Peak Days: {facts['peak_days_percentage']:.1f}% of operating days
+            
+            **Labor Cost Analysis:**
+            - Monthly Labor Budget: ${facts['monthly_labor_budget']:,.0f}
+            - Annual Labor Budget: ${facts['annual_labor_budget']:,.0f}
+            - Cost per Case: ${facts['cost_per_case']:.2f}
+            
+            **Staffing Patterns:**
+            - Peak Multiplier: {facts['peak_multiplier']:.2f}x above baseline
+            - FTE Variability (StdDev): {facts['std_fte_required']:.1f}
+            - Max FTE Required: {facts['max_fte_required']:.0f}
+            
+            Using the 'manpower_workforce_planning' prompt configuration, provide exactly 3 bullets for workforce planning and FTE analysis:
+            
+            • **Core Staffing Requirements**: Use actual recommended core FTE and average FTE from data with operational justification
+            • **Peak Capacity Planning**: Use actual peak FTE requirements and flex capacity needs with percentage of peak days from data  
+            • **Cost Optimization**: Use actual labor cost metrics (monthly budget, cost per case) with efficiency recommendations
+            
+            Use only actual FTE numbers and cost data from provided facts. Bold all FTE values, percentages, and cost metrics.
+            
+            Structure the response as:
+            
+            1. **Strategic Workforce Planning Overview** (2-3 sentences about overall FTE strategy)
+            2. **Core Insights** (3 bullet points as specified above)
+            3. **Implementation Recommendations** (2-3 actionable items for workforce optimization)
+            
+            Focus on practical workforce management advice that directly impacts operational efficiency, cost management, and staffing optimization.
+            """
+            
+            return self.call_gemini(prompt.strip())
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate manpower summary: {str(e)}")
+            return f"(Manpower summary generation failed: {str(e)})"
 
 
 def generate_llm_summaries(analysis_results: Dict, 

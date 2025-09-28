@@ -541,8 +541,13 @@ class AdvancedChartGenerator:
         self.logger.info("Creating enhanced multi-line order trend chart")
         
         if date_summary is None or date_summary.empty:
-            self.logger.warning("No date summary data available for enhanced trend chart")
+            self.logger.warning("❌ No date summary data available for enhanced trend chart")
             return ""
+        
+        # Debug information about the data received
+        self.logger.info(f"📊 Creating enhanced order trend chart with data shape: {date_summary.shape}")
+        self.logger.info(f"📊 Available columns: {list(date_summary.columns)}")
+        self.logger.info(f"📊 Date range: {date_summary['Date'].min()} to {date_summary['Date'].max()}" if 'Date' in date_summary.columns else "No Date column")
         
         # Prepare data
         df = date_summary.copy().sort_values("Date")
@@ -660,9 +665,23 @@ class AdvancedChartGenerator:
         
         # Extract data from analysis results
         abc_fms_summary = analysis_results.get('abc_fms_summary')
+        
+        # Debug information about available analysis results
+        self.logger.info(f"📊 Available analysis result keys: {list(analysis_results.keys())}")
+        
         if abc_fms_summary is None or abc_fms_summary.empty:
-            self.logger.warning("No ABC-FMS summary data available for 2D classification chart")
+            self.logger.warning("❌ No ABC-FMS summary data available for 2D classification chart")
+            if abc_fms_summary is None:
+                self.logger.warning("abc_fms_summary is None")
+            else:
+                self.logger.warning(f"abc_fms_summary is empty, shape: {abc_fms_summary.shape}")
             return ""
+        
+        # Debug information about the ABC-FMS data received
+        self.logger.info(f"📊 Creating SKU 2D classification chart with ABC-FMS data shape: {abc_fms_summary.shape}")
+        self.logger.info(f"📊 ABC-FMS columns: {list(abc_fms_summary.columns)}")
+        self.logger.info(f"📊 First few rows of ABC-FMS data:")
+        self.logger.info(f"{abc_fms_summary.head()}")
         
         # Create figure with multiple subplots
         fig = plt.figure(figsize=(16, 10))
@@ -839,3 +858,280 @@ class AdvancedChartGenerator:
         
         self.logger.info(f"SKU Profile 2D classification chart saved: {filename}")
         return str(filepath)
+    
+    def create_fte_requirements_timeline_chart(self, manpower_analysis: Dict) -> str:
+        """Create FTE requirements timeline chart showing daily staffing needs."""
+        self.logger.info("Creating FTE requirements timeline chart")
+        
+        try:
+            # Get daily staffing data
+            daily_patterns = manpower_analysis.get('daily_staffing_analysis', {})
+            daily_fte_data = daily_patterns.get('daily_fte_data')
+            
+            if daily_fte_data is None or daily_fte_data.empty:
+                self.logger.warning("❌ No daily FTE data available for timeline chart")
+                return ""
+            
+            self.logger.info(f"📊 Creating FTE timeline chart with data shape: {daily_fte_data.shape}")
+            
+            # Set up the plot
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+            fig.suptitle('Daily FTE Requirements Analysis\nStaffing Timeline & Utilization Patterns', 
+                        fontsize=16, fontweight='bold', y=0.95)
+            
+            # Prepare data
+            dates = pd.to_datetime(daily_fte_data['Date'])
+            fte_required = daily_fte_data['FTE_Required_Total']
+            total_cases = daily_fte_data['Total_Cases']
+            total_lines = daily_fte_data['Total_Lines']
+            
+            # Top chart: FTE Requirements Timeline
+            ax1.fill_between(dates, fte_required, alpha=0.3, color='#2196F3', label='FTE Required')
+            ax1.plot(dates, fte_required, color='#1976D2', linewidth=2.5, marker='o', markersize=4)
+            
+            # Add benchmark lines
+            avg_fte = fte_required.mean()
+            peak_threshold = fte_required.quantile(0.85)
+            
+            ax1.axhline(y=avg_fte, color='#4CAF50', linestyle='--', alpha=0.7, 
+                       label=f'Average ({avg_fte:.1f} FTE)')
+            ax1.axhline(y=peak_threshold, color='#FF9800', linestyle='--', alpha=0.7,
+                       label=f'Peak Threshold ({peak_threshold:.1f} FTE)')
+            
+            # Highlight peak days
+            peak_days = daily_fte_data[daily_fte_data['FTE_Required_Total'] >= peak_threshold]
+            if not peak_days.empty:
+                peak_dates = pd.to_datetime(peak_days['Date'])
+                peak_fte = peak_days['FTE_Required_Total']
+                ax1.scatter(peak_dates, peak_fte, color='#F44336', s=80, 
+                           zorder=5, label='Peak Days', alpha=0.8)
+            
+            ax1.set_ylabel('FTE Required', fontsize=11, fontweight='bold')
+            ax1.set_title('Daily FTE Requirements Timeline', fontsize=12, fontweight='bold')
+            ax1.grid(True, alpha=0.3)
+            ax1.legend(loc='upper right')
+            ax1.tick_params(axis='x', rotation=45)
+            
+            # Bottom chart: Volume vs FTE Correlation
+            ax2_twin = ax2.twinx()
+            
+            # Cases (bars)
+            bars = ax2.bar(dates, total_cases, alpha=0.6, color='#607D8B', 
+                          label='Daily Cases', width=0.8)
+            
+            # FTE line
+            line = ax2_twin.plot(dates, fte_required, color='#FF5722', linewidth=3, 
+                               marker='s', markersize=5, label='FTE Required')
+            
+            ax2.set_ylabel('Daily Cases', fontsize=11, fontweight='bold', color='#607D8B')
+            ax2_twin.set_ylabel('FTE Required', fontsize=11, fontweight='bold', color='#FF5722')
+            ax2.set_title('Volume vs FTE Correlation Analysis', fontsize=12, fontweight='bold')
+            ax2.grid(True, alpha=0.3)
+            ax2.tick_params(axis='x', rotation=45)
+            
+            # Combine legends
+            bars_legend = ax2.legend(loc='upper left')
+            line_legend = ax2_twin.legend(loc='upper right')
+            
+            # Color coordinate axes
+            ax2.tick_params(axis='y', colors='#607D8B')
+            ax2_twin.tick_params(axis='y', colors='#FF5722')
+            
+            plt.tight_layout()
+            
+            # Save chart
+            filename = "fte_requirements_timeline.png"
+            filepath = self.charts_dir / filename
+            plt.savefig(filepath, dpi=self.dpi, bbox_inches='tight', facecolor='white')
+            plt.close()
+            
+            self.logger.info(f"FTE requirements timeline chart saved: {filename}")
+            return str(filepath)
+            
+        except Exception as e:
+            self.logger.error(f"Error creating FTE timeline chart: {str(e)}")
+            plt.close()
+            return ""
+    
+    def create_workforce_planning_summary_chart(self, manpower_analysis: Dict) -> str:
+        """Create workforce planning summary chart with key metrics and recommendations."""
+        self.logger.info("Creating workforce planning summary chart")
+        
+        try:
+            # Get analysis data
+            summary_metrics = manpower_analysis.get('summary_metrics', {})
+            peak_analysis = manpower_analysis.get('peak_analysis', {})
+            cost_analysis = manpower_analysis.get('cost_analysis', {})
+            shift_planning = manpower_analysis.get('shift_planning', {})
+            
+            if not summary_metrics:
+                self.logger.warning("❌ No summary metrics available for workforce planning chart")
+                return ""
+            
+            # Set up the plot with subplots
+            fig = plt.figure(figsize=(16, 12))
+            gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
+            
+            # Main title
+            fig.suptitle('Workforce Planning Dashboard\nComprehensive FTE Analysis & Recommendations', 
+                        fontsize=18, fontweight='bold', y=0.95)
+            
+            # 1. FTE Requirements Gauge (top left)
+            ax1 = fig.add_subplot(gs[0, 0])
+            core_fte = summary_metrics.get('recommended_core_fte', 0)
+            peak_fte = summary_metrics.get('peak_fte_requirement', 0)
+            avg_fte = summary_metrics.get('average_fte_requirement', 0)
+            
+            fte_data = [core_fte, peak_fte - core_fte if peak_fte > core_fte else 0]
+            fte_labels = ['Core Staff', 'Flex Capacity']
+            colors = ['#4CAF50', '#FF9800']
+            
+            wedges, texts, autotexts = ax1.pie(fte_data, labels=fte_labels, autopct='%1.0f FTE',
+                                              colors=colors, startangle=90, textprops={'fontsize': 10})
+            ax1.set_title(f'FTE Distribution\nTotal Peak: {peak_fte:.0f} FTE', 
+                         fontsize=12, fontweight='bold')
+            
+            # 2. Cost Breakdown (top center)
+            ax2 = fig.add_subplot(gs[0, 1])
+            if cost_analysis:
+                monthly_budget = cost_analysis.get('total_monthly_labor', 0)
+                cost_per_case = cost_analysis.get('cost_per_case', 0)
+                
+                # Create cost metrics display
+                cost_metrics = [
+                    f"Monthly Budget:\n${monthly_budget:,.0f}",
+                    f"Cost per Case:\n${cost_per_case:.2f}",
+                    f"Annual Budget:\n${monthly_budget * 12:,.0f}"
+                ]
+                
+                for i, metric in enumerate(cost_metrics):
+                    ax2.text(0.5, 0.8 - i * 0.3, metric, ha='center', va='center',
+                            fontsize=11, fontweight='bold', 
+                            bbox=dict(boxstyle="round,pad=0.3", facecolor='#E3F2FD', alpha=0.8))
+                
+                ax2.set_xlim(0, 1)
+                ax2.set_ylim(0, 1)
+                ax2.axis('off')
+                ax2.set_title('Labor Cost Analysis', fontsize=12, fontweight='bold')
+            
+            # 3. Peak vs Average Comparison (top right)
+            ax3 = fig.add_subplot(gs[0, 2])
+            fte_comparison = [avg_fte, peak_fte - avg_fte if peak_fte > avg_fte else 0]
+            comparison_labels = ['Average Demand', 'Peak Surge']
+            comparison_colors = ['#2196F3', '#F44336']
+            
+            bars = ax3.bar(comparison_labels, fte_comparison, color=comparison_colors, alpha=0.7)
+            ax3.set_ylabel('FTE Required', fontweight='bold')
+            ax3.set_title('Peak vs Average Staffing', fontsize=12, fontweight='bold')
+            ax3.grid(True, alpha=0.3, axis='y')
+            
+            # Add value labels on bars
+            for bar, value in zip(bars, fte_comparison):
+                if value > 0:
+                    ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,
+                            f'{value:.1f}', ha='center', va='bottom', fontweight='bold')
+            
+            # 4. Category Labor Distribution (middle left)
+            ax4 = fig.add_subplot(gs[1, 0])
+            category_analysis = manpower_analysis.get('category_labor_analysis', {})
+            category_breakdown = category_analysis.get('category_breakdown')
+            
+            if category_breakdown is not None and not category_breakdown.empty:
+                categories = category_breakdown['Category']
+                fte_percentages = category_breakdown['FTE_Percentage']
+                
+                bars = ax4.barh(categories, fte_percentages, color=plt.cm.Set3(range(len(categories))))
+                ax4.set_xlabel('FTE Allocation (%)', fontweight='bold')
+                ax4.set_title('Category Labor Distribution', fontsize=12, fontweight='bold')
+                ax4.grid(True, alpha=0.3, axis='x')
+                
+                # Add percentage labels
+                for bar, value in zip(bars, fte_percentages):
+                    if value > 0:
+                        ax4.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2,
+                                f'{value:.1f}%', ha='left', va='center', fontweight='bold')
+            
+            # 5. Shift Planning Recommendations (middle center & right)
+            ax5 = fig.add_subplot(gs[1, 1:])
+            if shift_planning:
+                core_staffing = shift_planning.get('core_staffing', {})
+                peak_staffing = shift_planning.get('peak_staffing', {})
+                
+                if core_staffing and peak_staffing:
+                    shifts = ['Shift 1 (Day)', 'Shift 2 (Evening)']
+                    core_values = [core_staffing.get('shift_1_day', 0), core_staffing.get('shift_2_evening', 0)]
+                    peak_values = [peak_staffing.get('shift_1_day', 0), peak_staffing.get('shift_2_evening', 0)]
+                    
+                    x = np.arange(len(shifts))
+                    width = 0.35
+                    
+                    bars1 = ax5.bar(x - width/2, core_values, width, label='Core Staffing', 
+                                   color='#4CAF50', alpha=0.8)
+                    bars2 = ax5.bar(x + width/2, peak_values, width, label='Peak Staffing',
+                                   color='#FF5722', alpha=0.8)
+                    
+                    ax5.set_xlabel('Shifts', fontweight='bold')
+                    ax5.set_ylabel('FTE Required', fontweight='bold')
+                    ax5.set_title('Shift Planning Recommendations', fontsize=12, fontweight='bold')
+                    ax5.set_xticks(x)
+                    ax5.set_xticklabels(shifts)
+                    ax5.legend()
+                    ax5.grid(True, alpha=0.3, axis='y')
+                    
+                    # Add value labels
+                    for bars in [bars1, bars2]:
+                        for bar in bars:
+                            height = bar.get_height()
+                            if height > 0:
+                                ax5.text(bar.get_x() + bar.get_width()/2, height + 0.1,
+                                        f'{height:.0f}', ha='center', va='bottom', fontweight='bold')
+            
+            # 6. Key Recommendations (bottom)
+            ax6 = fig.add_subplot(gs[2, :])
+            
+            # Generate recommendations text
+            recommendations = []
+            if peak_analysis:
+                peak_days_pct = peak_analysis.get('peak_days_percentage', 0)
+                recommendations.append(f"• Peak staffing needed {peak_days_pct:.1f}% of operating days")
+            
+            if summary_metrics:
+                flex_capacity = summary_metrics.get('flex_capacity_needed', 0)
+                if flex_capacity > 0:
+                    recommendations.append(f"• Maintain {flex_capacity:.0f} FTE flexible capacity for peak periods")
+            
+            if cost_analysis:
+                cost_per_case = cost_analysis.get('cost_per_case', 0)
+                if cost_per_case > 0:
+                    recommendations.append(f"• Current labor cost efficiency: ${cost_per_case:.2f} per case")
+            
+            recommendations.extend([
+                "• Consider cross-training staff for operational flexibility",
+                "• Implement workforce scheduling software for optimal allocation",
+                "• Monitor productivity metrics against industry benchmarks"
+            ])
+            
+            # Display recommendations
+            rec_text = '\n'.join(recommendations)
+            ax6.text(0.05, 0.95, 'Key Workforce Planning Recommendations:', 
+                    transform=ax6.transAxes, fontsize=14, fontweight='bold')
+            ax6.text(0.05, 0.05, rec_text, transform=ax6.transAxes, fontsize=11,
+                    verticalalignment='bottom',
+                    bbox=dict(boxstyle="round,pad=0.5", facecolor='#F5F5F5', alpha=0.9))
+            ax6.axis('off')
+            
+            plt.tight_layout()
+            
+            # Save chart
+            filename = "workforce_planning_dashboard.png"
+            filepath = self.charts_dir / filename
+            plt.savefig(filepath, dpi=self.dpi, bbox_inches='tight', facecolor='white')
+            plt.close()
+            
+            self.logger.info(f"Workforce planning dashboard chart saved: {filename}")
+            return str(filepath)
+            
+        except Exception as e:
+            self.logger.error(f"Error creating workforce planning chart: {str(e)}")
+            plt.close()
+            return ""

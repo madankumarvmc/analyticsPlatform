@@ -483,9 +483,18 @@ class WordReportGenerator:
         # Add enhanced multi-line order trend chart (replaces separate volume and customer charts)
         enhanced_trend_chart_path = self.charts_dir / 'enhanced_order_trend_profile.png'
         
+        # Enhanced debugging for chart paths
+        self.logger.info(f"Looking for enhanced trend chart at: {enhanced_trend_chart_path}")
+        self.logger.info(f"Charts directory contents: {list(self.charts_dir.glob('*.png')) if self.charts_dir.exists() else 'Directory does not exist'}")
+        
         if enhanced_trend_chart_path.exists():
+            file_size = enhanced_trend_chart_path.stat().st_size
+            self.logger.info(f"✅ Found enhanced order trend chart: {enhanced_trend_chart_path} (size: {file_size} bytes)")
             self._add_chart_with_insights(doc, 'enhanced_order_trend_profile', enhanced_trend_chart_path, analysis_results)
         else:
+            self.logger.warning(f"❌ Enhanced order trend chart not found: {enhanced_trend_chart_path}")
+            self.logger.info("Falling back to original separate volume and customer charts")
+            
             # Fallback to original charts if enhanced chart is not available
             date_chart_path = self.charts_dir / 'date_total_case_equiv.png'
             customer_chart_path = self.charts_dir / 'date_distinct_customers.png'
@@ -578,8 +587,22 @@ class WordReportGenerator:
         
         # Add enhanced SKU Profile 2D Classification chart
         sku_2d_chart_path = self.charts_dir / 'sku_profile_2d_classification.png'
+        
+        # Enhanced debugging for 2D chart paths
+        self.logger.info(f"Looking for SKU 2D classification chart at: {sku_2d_chart_path}")
+        
         if sku_2d_chart_path.exists():
+            file_size = sku_2d_chart_path.stat().st_size
+            self.logger.info(f"✅ Found SKU 2D classification chart: {sku_2d_chart_path} (size: {file_size} bytes)")
             self._add_chart_with_insights(doc, 'sku_profile_2d_classification', sku_2d_chart_path, analysis_results)
+        else:
+            self.logger.warning(f"❌ SKU 2D classification chart not found: {sku_2d_chart_path}")
+            # Add placeholder text in Word report to indicate missing chart
+            placeholder = doc.add_paragraph("📊 Enhanced SKU Profile 2D Classification Chart")
+            placeholder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            placeholder.style = 'Intense Quote'
+            note = doc.add_paragraph("Note: Enhanced 2D classification chart is being generated and will be available in future reports.")
+            note.style = 'Caption'
         
         doc.add_page_break()
         
@@ -904,6 +927,127 @@ class WordReportGenerator:
                     if findings_data:
                         findings_df = pd.DataFrame(findings_data, columns=['Finding', 'Value'])
                         self._add_data_table(doc, "Key Performance Findings", findings_df, max_rows=3)
+            
+            doc.add_page_break()
+        
+        # Manpower & FTE Analysis
+        if 'manpower_analysis' in analysis_results:
+            self._add_heading_with_style(doc, "Workforce Planning & FTE Analysis", level=1)
+            
+            manpower_analysis = analysis_results['manpower_analysis']
+            
+            # Generate AI insights for manpower analysis
+            try:
+                manpower_insights = self.llm_integration.generate_manpower_summary(
+                    manpower_analysis
+                )
+                if manpower_insights and not manpower_insights.startswith("("):
+                    self._add_ai_insight_section(doc, "Workforce Planning Insights", manpower_insights)
+            except Exception as e:
+                self.logger.error(f"Failed to generate manpower insights: {e}")
+            
+            # Add FTE requirements summary table
+            summary_metrics = manpower_analysis.get('summary_metrics', {})
+            if summary_metrics:
+                fte_summary_data = []
+                fte_summary_data.append(['Recommended Core FTE', f"{summary_metrics.get('recommended_core_fte', 0):.0f}"])
+                fte_summary_data.append(['Peak FTE Requirement', f"{summary_metrics.get('peak_fte_requirement', 0):.0f}"])
+                fte_summary_data.append(['Average FTE Requirement', f"{summary_metrics.get('average_fte_requirement', 0):.1f}"])
+                fte_summary_data.append(['Flex Capacity Needed', f"{summary_metrics.get('flex_capacity_needed', 0):.0f}"])
+                fte_summary_data.append(['Peak Days (%)', f"{summary_metrics.get('peak_days_percentage', 0):.1f}%"])
+                
+                fte_summary_df = pd.DataFrame(fte_summary_data, columns=['FTE Metric', 'Value'])
+                self._add_data_table(doc, "FTE Requirements Summary", fte_summary_df, max_rows=5)
+            
+            # Add cost analysis table
+            cost_analysis = manpower_analysis.get('cost_analysis', {})
+            if cost_analysis:
+                cost_data = []
+                monthly_budget = cost_analysis.get('total_monthly_labor', 0)
+                cost_per_case = cost_analysis.get('cost_per_case', 0)
+                annual_budget = cost_analysis.get('annual_labor_budget', 0)
+                
+                cost_data.append(['Monthly Labor Budget', f"${monthly_budget:,.0f}"])
+                cost_data.append(['Annual Labor Budget', f"${annual_budget:,.0f}"])
+                cost_data.append(['Cost per Case', f"${cost_per_case:.2f}"])
+                
+                cost_df = pd.DataFrame(cost_data, columns=['Cost Metric', 'Value'])
+                self._add_data_table(doc, "Labor Cost Analysis", cost_df, max_rows=3)
+            
+            # Add embedded charts if available
+            charts_dir = self.charts_dir
+            
+            # FTE requirements timeline chart
+            fte_timeline_chart = charts_dir / 'fte_requirements_timeline.png'
+            if fte_timeline_chart.exists():
+                try:
+                    paragraph = doc.add_paragraph()
+                    run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+                    run.add_picture(str(fte_timeline_chart), width=Inches(6.0))
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    
+                    caption = doc.add_paragraph("Figure: Daily FTE Requirements Timeline with Peak Analysis")
+                    caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    caption.style = 'Caption'
+                    
+                except Exception as e:
+                    self.logger.warning(f"Failed to embed FTE timeline chart: {e}")
+                    placeholder = doc.add_paragraph("📊 Daily FTE Requirements Timeline Chart")
+                    placeholder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    placeholder.style = 'Intense Quote'
+            
+            # Workforce planning dashboard chart
+            workforce_dashboard_chart = charts_dir / 'workforce_planning_dashboard.png'
+            if workforce_dashboard_chart.exists():
+                try:
+                    paragraph = doc.add_paragraph()
+                    run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+                    run.add_picture(str(workforce_dashboard_chart), width=Inches(7.0))
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    
+                    caption = doc.add_paragraph("Figure: Comprehensive Workforce Planning Dashboard")
+                    caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    caption.style = 'Caption'
+                    
+                except Exception as e:
+                    self.logger.warning(f"Failed to embed workforce dashboard chart: {e}")
+                    placeholder = doc.add_paragraph("📊 Workforce Planning Dashboard Chart")
+                    placeholder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    placeholder.style = 'Intense Quote'
+            
+            # Add category labor distribution if available
+            category_analysis = manpower_analysis.get('category_labor_analysis', {})
+            category_breakdown = category_analysis.get('category_breakdown')
+            if category_breakdown is not None and not category_breakdown.empty:
+                category_labor_data = []
+                for _, row in category_breakdown.iterrows():
+                    category_labor_data.append([
+                        row['Category'],
+                        f"{row['FTE_Total_Required']:.1f}",
+                        f"{row['FTE_Percentage']:.1f}%",
+                        f"{row['Labor_Coefficient']:.2f}"
+                    ])
+                
+                if category_labor_data:
+                    category_df = pd.DataFrame(category_labor_data, 
+                                             columns=['Category', 'FTE Required', 'FTE %', 'Complexity Factor'])
+                    self._add_data_table(doc, "Category Labor Allocation", category_df, max_rows=5)
+            
+            # Add shift planning recommendations
+            shift_planning = manpower_analysis.get('shift_planning', {})
+            if shift_planning:
+                core_staffing = shift_planning.get('core_staffing', {})
+                peak_staffing = shift_planning.get('peak_staffing', {})
+                
+                if core_staffing and peak_staffing:
+                    shift_data = []
+                    shift_data.append(['Core Day Shift', f"{core_staffing.get('shift_1_day', 0):.0f} FTE"])
+                    shift_data.append(['Core Evening Shift', f"{core_staffing.get('shift_2_evening', 0):.0f} FTE"])
+                    shift_data.append(['Peak Day Shift', f"{peak_staffing.get('shift_1_day', 0):.0f} FTE"])
+                    shift_data.append(['Peak Evening Shift', f"{peak_staffing.get('shift_2_evening', 0):.0f} FTE"])
+                    
+                    shift_df = pd.DataFrame(shift_data, columns=['Shift Configuration', 'Staffing Level'])
+                    self._add_data_table(doc, "Recommended Shift Planning", shift_df, max_rows=4)
             
             doc.add_page_break()
 

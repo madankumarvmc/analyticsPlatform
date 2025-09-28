@@ -233,6 +233,17 @@ ADVANCED_ANALYSIS_PROMPTS = {
         
         Use only actual complexity scores from provided facts. Bold complexity levels and key metrics.''',
         'context': 'Operational Complexity Analysis'
+    },
+    
+    'manpower_workforce_planning': {
+        'instruction': '''Provide exactly 3 bullets for workforce planning and FTE analysis:
+        
+        • **Core Staffing Requirements**: Use actual recommended core FTE and average FTE from data with operational justification
+        • **Peak Capacity Planning**: Use actual peak FTE requirements and flex capacity needs with percentage of peak days from data
+        • **Cost Optimization**: Use actual labor cost metrics (monthly budget, cost per case) with efficiency recommendations
+        
+        Use only actual FTE numbers and cost data from provided facts. Bold all FTE values, percentages, and cost metrics.''',
+        'context': 'Workforce Planning & FTE Analysis'
     }
 }
 
