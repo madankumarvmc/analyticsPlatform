@@ -548,7 +548,7 @@ class WordReportGenerator:
         # Add SKU summary table (reduced to top 3 to save space)
         sku_summary = analysis_results.get('sku_order_summary')
         if sku_summary is not None and not sku_summary.empty:
-            self._add_data_table(doc, "Top SKUs by Volume", sku_summary.head(3), max_rows=3)
+            self._add_data_table(doc, "Top SKUs by Volume", sku_summary.head(10), max_rows=10)
         
         # Add SKU Pareto chart with concise insights
         sku_pareto_path = self.charts_dir / 'sku_pareto.png'

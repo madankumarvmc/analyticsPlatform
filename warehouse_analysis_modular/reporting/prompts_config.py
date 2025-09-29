@@ -13,14 +13,14 @@ for different sections and charts in warehouse analysis reports.
 
 EXECUTIVE_SUMMARY_PROMPTS = {
     'cover': {
-        'instruction': '''Create exactly 4 bullet points using the actual data provided in facts:
+        'instruction': '''Create exactly 4 bullet points that summarize the warehouse analysis with comprehensive business impact:
         
-        • **Data Scope**: Use actual numbers for dates, SKUs, order lines, case equivalents
-        • **Operational Scale**: Use real date range and volume from data with calculated metrics
-        • **Demand Pattern**: Use calculated peak vs average ratio and variability percentage from data
-        • **Classification**: Use actual ABC distribution percentages from analysis
+        • **Operational Scale**: Highlight the data scope with specific numbers - total order lines processed, unique SKUs analyzed, date range analyzed, and total case equivalents handled
+        • **Key Performance Patterns**: Identify the most critical operational patterns including peak-to-average ratios, demand concentration by top SKUs, and seasonal variations
+        • **Strategic Insights**: Highlight the most impactful findings such as ABC class dominance, fast-moving items concentration, and operational efficiency opportunities
+        • **Business Impact**: Summarize the key recommendations for capacity planning, inventory optimization, and workforce planning with quantified benefits
         
-        Use only real numbers from the provided facts. Bold all actual percentages, ratios, and metrics. No placeholders.''',
+        Use only actual data from the analysis. Bold all specific numbers, percentages, and key metrics. Focus on actionable insights that drive business decisions.''',
         'context': 'Executive Summary for Management Report'
     }
 }
@@ -42,35 +42,35 @@ SECTION_ANALYSIS_PROMPTS = {
     },
     
     'percentiles': {
-        'instruction': '''Provide exactly 3 bullets using actual percentile data from facts:
+        'instruction': '''Provide exactly 3 bullets using actual percentile data from the analysis (must show all configured percentiles: Max, 95%ile, 90%ile, 85%ile, Average):
         
-        • **Capacity Spread**: Use calculated 95th to 50th percentile ratio from real data
-        • **Peak Planning**: Use actual percentile values for infrastructure sizing recommendations
-        • **Operational Buffer**: Insight about capacity buffer using real percentile differences
+        • **Capacity Distribution Analysis**: Report all percentile values with specific numbers - Maximum volume, 95th percentile, 90th percentile, 85th percentile, and average, highlighting the capacity spread and variability patterns
+        • **Infrastructure Planning Recommendations**: Use actual 95th percentile value as design capacity base, calculate recommended buffer percentage (typically 15%), and provide total design capacity recommendation with justification
+        • **Operational Buffer Strategy**: Analyze capacity gaps between percentiles, identify operational buffer zones, recommend flex capacity strategies, and highlight utilization optimization opportunities based on actual percentile distributions
         
-        Use only actual percentile numbers from provided facts. Bold all real percentages and values. No placeholders.''',
+        Use only actual calculated percentile values from the analysis. Bold all specific percentile numbers and capacity values. Never use placeholder values like 0 or N/A.''',
         'context': 'Capacity Planning Analysis'
     },
     
     'sku_profile': {
-        'instruction': '''Provide exactly 3 bullets using actual SKU data from facts:
+        'instruction': '''Provide exactly 3 bullets using comprehensive SKU data from facts (ensure top SKU table shows at least 10 SKUs):
         
-        • **Pareto Analysis**: Use calculated percentage of SKUs that contribute to 80% of volume from data
-        • **Top Concentration**: Use actual top SKU percentages and their volume contribution from analysis
-        • **Distribution Pattern**: Key insight about SKU velocity using real distribution data
+        • **Pareto Analysis**: Calculate exact percentage of SKUs that contribute to 80% of total volume, identify the top 10-20 SKUs by volume with specific volume numbers, and highlight concentration impact on operations
+        • **Top Performer Analysis**: Detail the highest performing SKUs with actual volume and line counts, analyze the volume contribution of the top 10% of SKUs, and assess the operational impact of SKU concentration
+        • **Distribution Strategy**: Provide velocity-based insights using actual SKU movement data, recommend strategic slotting priorities for high-velocity SKUs, and identify opportunities for inventory optimization based on actual distribution patterns
         
-        Use only actual numbers from provided facts. Bold all real percentages and SKU counts. No placeholders.''',
+        Use only actual SKU performance data from the analysis. Bold all specific SKU counts, volume numbers, and percentages. Ensure comprehensive coverage of top-performing SKUs with detailed metrics.''',
         'context': 'SKU Distribution Analysis'
     },
     
     'abc_fms': {
-        'instruction': '''Provide exactly 3 bullets using actual ABC-FMS data from facts:
+        'instruction': '''Provide exactly 3 bullets using actual ABC-FMS cross-classification data from facts:
         
-        • **ABC Distribution**: Use calculated A/B/C percentages by volume contribution from data
-        • **Movement Patterns**: Use actual Fast/Medium/Slow percentages from analysis
-        • **Classification Insight**: Key observation about effectiveness using real distribution data
+        • **ABC Distribution Analysis**: Report exact percentage breakdown by volume (A-class: X%, B-class: Y%, C-class: Z%) and by SKU count, highlighting dominance patterns and strategic implications
+        • **FMS Movement Classification**: Detail actual Fast/Medium/Slow movement percentages from analysis data, including frequency patterns and turnover insights for each class
+        • **Strategic Classification Effectiveness**: Assess the distribution balance using real data - identify over-concentration in specific classes, recommend classification threshold adjustments, and highlight opportunities for improved slotting based on actual patterns
         
-        Use only actual percentages from provided facts. Bold all real classification percentages. No placeholders.''',
+        Use only actual percentages and distributions from provided analysis results. Bold all real classification percentages and provide specific actionable recommendations based on data patterns.''',
         'context': 'ABC-FMS Classification Analysis'
     },
     
@@ -263,14 +263,18 @@ WORD_DOCUMENT_PROMPTS = {
     },
     
     'key_findings_summary': {
-        'instruction': '''Create exactly 4 bullet points using actual analysis data from facts:
+        'instruction': '''Create exactly 8 bullet points with comprehensive operational insights using actual analysis data:
         
-        • **Volume Concentration**: Use calculated Pareto ratios and percentages from real data
-        • **Demand Variability**: Use actual peak vs average ratios and operational impact from data
-        • **Classification Patterns**: Use real ABC/FMS distribution percentages and insights
-        • **Operational Scale**: Use actual volume and complexity metrics from analysis
+        • **Volume Concentration**: Identify exact percentage of SKUs that drive 80% of volume, top performing SKU volumes, and concentration ratios with business impact
+        • **Demand Variability**: Calculate specific peak-to-average ratios across all metrics (volume, customers, lines), seasonal patterns, and capacity implications
+        • **ABC Classification Performance**: Provide actual ABC class distribution percentages by volume, lines, and SKU count with strategic recommendations
+        • **FMS Movement Analysis**: Detail Fast/Medium/Slow classification percentages, movement frequency patterns, and inventory turnover insights
+        • **Customer Behavior Patterns**: Analyze customer concentration, order patterns, peak customer ratios, and service level implications
+        • **Operational Efficiency**: Calculate picking methodology distributions, case vs piece percentages, and efficiency optimization opportunities
+        • **Capacity Planning Insights**: Provide specific percentile values (95th, 90th, 85th), capacity recommendations, and infrastructure sizing guidance
+        • **Strategic Opportunities**: Identify key improvement areas with quantified benefits including slotting optimization, workforce planning, and inventory management
         
-        Use only real numbers from provided facts. Bold all actual percentages, ratios, and metrics. No placeholders.''',
+        Use only actual data from the analysis. Bold all specific numbers, percentages, and metrics. Provide actionable insights with clear business value for each finding.''',
         'context': 'Key Findings Summary'
     },
     

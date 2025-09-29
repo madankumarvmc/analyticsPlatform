@@ -279,23 +279,30 @@ class ChartGenerator:
         # Ensure proper ordering
         pivot = pivot.reindex(index=["A", "B", "C"], columns=["F", "M", "S"], fill_value=0)
         
-        # Calculate row-wise percentages
+        # Calculate row-wise percentages (each row sums to 100%)
         pivot_pct = pivot.div(pivot.sum(axis=1).replace(0, np.nan), axis=0).fillna(0) * 100
         
-        # Create heatmap
+        # Create heatmap with blue color scheme
         config = CHART_CONFIGS['abc_heatmap_chart']
         fig, ax = plt.subplots(figsize=config['figsize'])
         
-        cax = ax.imshow(pivot_pct.values, aspect='auto')
+        # Use blue color scheme as requested
+        from matplotlib.colors import LinearSegmentedColormap
+        colors = ['#f0f8ff', '#4682b4', '#191970']  # Light blue to dark blue
+        blue_cmap = LinearSegmentedColormap.from_list('blue_custom', colors)
+        
+        cax = ax.imshow(pivot_pct.values, aspect='auto', cmap=blue_cmap)
         ax.set_xticks(range(len(pivot_pct.columns)))
         ax.set_xticklabels(pivot_pct.columns)
         ax.set_yticks(range(len(pivot_pct.index)))
         ax.set_yticklabels(pivot_pct.index)
         ax.set_title(config['title'])
         
-        # Add value annotations
+        # Add value annotations with white text for better visibility on blue
         for (i, j), val in np.ndenumerate(pivot_pct.values):
-            ax.text(j, i, f"{val:.1f}%", ha='center', va='center', fontsize=9)
+            text_color = 'white' if val > 50 else 'black'
+            ax.text(j, i, f"{val:.1f}%", ha='center', va='center', fontsize=9, 
+                   color=text_color, fontweight='bold')
         
         # Add colorbar
         fig.colorbar(cax, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
